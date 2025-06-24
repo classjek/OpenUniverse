@@ -1,0 +1,17 @@
+# CMake build dir
+**/build/
+**/data/
+
+# Compiled object files, libraries, executables
+gen_pop/*.o
+gen_pop/*.obj
+gen_pop/*.so
+gen_pop/*.dylib
+gen_pop/*.exe
+
+# DuckDB extension cache
+~/.duckdb/
+
+# IDE / editor files
+.DS_Store
+*.swp
