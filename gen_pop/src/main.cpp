@@ -1,10 +1,13 @@
 #include "duckdb.hpp"
+#include "kb_core.h"
 #include <iostream>
 #include <vector>
 #include <filesystem>
 
 int main(){
     using namespace duckdb; 
+    using namespace kb;
+
     namespace fs = std::filesystem;
     
     std::cout << "Hello there guy, " << __cplusplus << std::endl;
@@ -31,16 +34,32 @@ int main(){
     if (res->HasError()) {
         std::cerr << res->GetError() << '\n';
         return 1; 
+    } else {
+        std::cout << "Table 'yago' created successfully.\n";
     }
 
-    auto head = conn.Query("SELECT * FROM yago LIMIT 10;");
-    for (auto &name : head->names) std::cout << name << '\t';
-    std::cout << '\n' << '\n';
-    for (auto &row : *head) {
-        for (idx_t i = 0; i < head->ColumnCount(); ++i)
-            std::cout << row.GetValue<std::string>(i) << '\t';
-        std::cout << '\n';
-    }
+    auto q = std::make_shared<Atom>();
+    q->rel  = "Q";
+    q->args = {"x", "b"};
+
+    auto r = std::make_shared<Atom>();
+    r->rel = "R";
+    r->args = {"x", "y", "z"};
+
+    std::cout << "Query Atoms: " << q->toString() << " " << r->toString() << '\n';
+    auto m1 = Monomial::fromAtom(q);
+    auto mR = Monomial::fromAtom(r);
+    std::cout << "Monomials: " << m1->toString() << " " << mR->toString() << '\n';
+
+
+    // auto head = conn.Query("SELECT * FROM yago LIMIT 10;");
+    // for (auto &name : head->names) std::cout << name << '\t';
+    // std::cout << '\n' << '\n';
+    // for (auto &row : *head) {
+    //     for (idx_t i = 0; i < head->ColumnCount(); ++i)
+    //         std::cout << row.GetValue<std::string>(i) << '\t';
+    //     std::cout << '\n';
+    // }
 
     return 0;
 }
