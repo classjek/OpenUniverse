@@ -1,4 +1,5 @@
 #include "kb_core.h"
+#include <iostream>
 
 namespace kb {
 // Atom Helpers
@@ -74,7 +75,26 @@ bool Monomial::operator==(const Monomial& o) const noexcept {
     return items == o.items;
 }
 
-// Polynomial Helpers
+// Polynomial Helpers //
+// 
+void Polynomial::canonicalise() {
+    std::sort(terms.begin(), terms.end(),
+        [](const Term& a, const Term& b){ return *(a.first) < *(b.first); });
+    std::vector<Term> tmp;
+    for (const auto& it : terms) {
+        if (!tmp.empty() && *(tmp.back().first) == *(it.first))
+            tmp.back().second += it.second;        // same monomial -> add coefficients
+        else
+            tmp.push_back(it);
+    }
+    terms.swap(tmp);
+}
+// Create a polynomial from a single monomial 
+std::shared_ptr<Polynomial> Polynomial::fromMonomial(const MonoPtr& m) {
+    auto p = std::make_shared<Polynomial>();
+    p->terms.emplace_back(m, 1);
+    return p;
+}
 void Polynomial::addTerm(const MonoPtr& m, Coeff c) {
     if (c == 0) return;
     auto cmp = [](const Term& a, const Term& b){ return *(a.first) < *(b.first); };
@@ -85,6 +105,21 @@ void Polynomial::addTerm(const MonoPtr& m, Coeff c) {
     } else {
         terms.insert(it, {m, c});
     }
+    canonicalise();  // ensure polynomial is in canonical form after adding
+}
+std::string Polynomial::toString() const{
+    std::string out; 
+    for (const auto& [m,c] : terms) {
+        if (!out.empty()) out += " + ";
+        if (c == 1) {
+            out += m->toString();  
+        } else if (c == -1) {
+            out += '-' + m->toString();  
+        } else {
+            out += std::to_string(c) + '*' + m->toString(); 
+        } 
+    }
+    return out; 
 }
 
 }

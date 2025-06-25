@@ -38,19 +38,27 @@ int main(){
         std::cout << "Table 'yago' created successfully.\n";
     }
 
+    // Initialize atoms q and r
     auto q = std::make_shared<Atom>();
     q->rel  = "Q";
     q->args = {"x", "b"};
-
     auto r = std::make_shared<Atom>();
     r->rel = "R";
     r->args = {"x", "y", "z"};
 
-    std::cout << "Query Atoms: " << q->toString() << " " << r->toString() << '\n';
+    // Initialize Monomials from these atoms
     auto m1 = Monomial::fromAtom(q);
-    auto mR = Monomial::fromAtom(r);
-    std::cout << "Monomials: " << m1->toString() << " " << mR->toString() << '\n';
+    auto m2 = Monomial::fromAtom(r);
+    auto m3 = Monomial::multiply(m1,m2); 
+    m3 = Monomial::multiply(m3, m2); 
+    m3 = Monomial::multiply(m3, m1); 
 
+    // Initialize Polynomial from monomial
+    auto p1 = Polynomial::fromMonomial(m1);
+    p1->addTerm(m2, -4);
+    p1->addTerm(m2, 2);
+    p1->addTerm(m3, -1);
+    std::cout << p1->toString() << std::endl;
 
     // auto head = conn.Query("SELECT * FROM yago LIMIT 10;");
     // for (auto &name : head->names) std::cout << name << '\t';

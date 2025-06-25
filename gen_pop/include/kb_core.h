@@ -52,7 +52,11 @@ using Term  = std::pair<MonoPtr, Coeff>;
 
 struct Polynomial {
     std::vector<Term> terms;           // sorted by monomial pointer ordering
+    //TODO
+    void canonicalise();         // sort + merge same monomials (implementation later)
+    static std::shared_ptr<Polynomial> fromMonomial(const MonoPtr& m);
     void addTerm(const MonoPtr& m, Coeff c);
+    std::string toString() const; 
 };
 
 enum class Cmp : std::uint8_t { EQ0, GE0 };
