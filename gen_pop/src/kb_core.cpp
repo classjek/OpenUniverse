@@ -14,6 +14,8 @@ std::string Atom::toString() const{
 }
 
 bool Atom::operator<(const Atom& o) const noexcept {
+    // handle zero atom (used to build zero monomial)
+    if (rel.empty() && args.empty()) return true;  // empty atom is less than any other
     return std::tie(rel, args) < std::tie(o.rel, o.args);
 }
 bool Atom::operator==(const Atom& o) const noexcept {
@@ -37,6 +39,9 @@ void Monomial::canonicalise() {
 
 std::string Monomial::toString() const {
     std::string out;
+    // if (items.size() == 1 && (*items[0].first).rel.empty()){
+    //     std::cout << "Trying to print zero monomial bruh" << std::endl;
+    // }
     for (const auto& [ap, e] : items) {
         if (!out.empty()) out += '*';
         out += ap->toString();
@@ -44,7 +49,15 @@ std::string Monomial::toString() const {
     }
     return out.empty() ? "1" : out;  // empty monomial is 1
 }
-
+std::shared_ptr<Monomial> Monomial::zeroMon(){
+    auto m = std::make_shared<Monomial>();
+    m->items.emplace_back(std::make_shared<Atom>(), 1); // empty atom with exponent 0
+    return m;
+}
+bool Monomial::isZero() const {
+    // a monomial is zero if it contains an empty atom with exponent 0
+    return items.size() == 1 && items[0].first->rel.empty();
+}
 std::shared_ptr<Monomial> Monomial::fromAtom(const AtomPtr& a) {
     auto m = std::make_shared<Monomial>();
     m->items.emplace_back(a, 1);
@@ -53,6 +66,10 @@ std::shared_ptr<Monomial> Monomial::fromAtom(const AtomPtr& a) {
 
 std::shared_ptr<Monomial> Monomial::multiply(const std::shared_ptr<Monomial>& A, const std::shared_ptr<Monomial>& B)
 {
+    // if A or B is zero monomial, then just return the other
+    if (A->isZero()) return B;
+    if (B->isZero()) return A; 
+    // else
     auto m = std::make_shared<Monomial>();
     m->items.reserve(A->items.size() + B->items.size());
     m->items.insert(m->items.end(), A->items.begin(), A->items.end());
@@ -111,6 +128,10 @@ std::string Polynomial::toString() const{
     std::string out; 
     for (const auto& [m,c] : terms) {
         if (!out.empty()) out += " + ";
+        if(m->isZero()) { // if printing zero monomial
+            out += std::to_string(c); // just print coeff
+            continue;
+        }
         if (c == 1) {
             out += m->toString();  
         } else if (c == -1) {

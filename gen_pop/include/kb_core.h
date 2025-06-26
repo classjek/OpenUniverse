@@ -36,6 +36,8 @@ struct Monomial {
 
     std::string toString() const;
     static std::shared_ptr<Monomial> fromAtom(const AtomPtr& a);
+    static std::shared_ptr<Monomial> zeroMon();
+    bool isZero() const; 
     static std::shared_ptr<Monomial> multiply(const std::shared_ptr<Monomial>& A,
                                               const std::shared_ptr<Monomial>& B);
     std::vector<AtomPtr> expandedAtoms() const;        // debug helper
@@ -52,7 +54,6 @@ using Term  = std::pair<MonoPtr, Coeff>;
 
 struct Polynomial {
     std::vector<Term> terms;           // sorted by monomial pointer ordering
-    //TODO
     void canonicalise();         // sort + merge same monomials (implementation later)
     static std::shared_ptr<Polynomial> fromMonomial(const MonoPtr& m);
     void addTerm(const MonoPtr& m, Coeff c);
