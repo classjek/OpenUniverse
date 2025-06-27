@@ -116,18 +116,15 @@ MonoPtr Parser::parseFactor() {
 std::pair<bool, Coeff> Parser::parseCoefficient(){
     // no explicit coefficient, ex: Q(x,y)
     if (lex.peek().kind != Tok::NUMBER) { 
-        return std::make_pair(true, 1); 
+        return std::make_pair(true, 1); // attach coefficient 1
     }
-    // explicit coefficient, ex: 3*Q(x,y)
-    // check if there is a following term(true) or it is a constant(false)
-    // ex: 3 or 3*Q(x,y)
+    // explicit coefficient, ex: 3 or 3*Q(x,y)
     std::string numStr = lex.pop().text;
-    if (lex.peek().kind != Tok::STAR) {
-        // std::cout << "This is a constant: " << static_cast<Coeff>(std::stoll(numStr)) << std::endl;
-        // no '*' after number, so just return the number
+    if (lex.peek().kind != Tok::STAR) { // Check for following term(t) or if is constant(f)
+        // no '*' after number, so just return the number, ex: 3
         return std::make_pair(false, static_cast<Coeff>(std::stoll(numStr)));
     }
-    // else we have a following monomial
+    // else we have a following monomial, ex: 3*Q(x,y)
     accept(Tok::STAR); // process *
     return std::make_pair(true, static_cast<Coeff>(std::stoll(numStr)));
 }
@@ -145,16 +142,11 @@ MonoPtr Parser::parseProduct() {
 
 Polynomial Parser::parseSum() {
     Polynomial P;
-
-    // handle optional leading sign (+/-)
-    bool neg = false;
+    bool neg = false; // handle optional leading sign (+/-)
     if (accept(Tok::PLUS) || (neg = accept(Tok::MINUS))) {}
+    
     // parse first object and add its monomial to polynomial
     auto coef = parseCoefficient();
-    // have parseCoefficient return a bool and the coeff 
-    // if bool is false, then skip firstMono and create a zeroMono
-    // otherwise, use parseproduct()
-    // auto firstMono = parseProduct();
     if (coef.first){ // there is following term after coeff
         auto firstMono = parseProduct(); // process term
         P.addTerm(firstMono, neg ? -1 * coef.second : 1 * coef.second);
@@ -162,9 +154,6 @@ Polynomial Parser::parseSum() {
         // add zeroMonomial to represent constant 
         P.addTerm(Monomial::zeroMon(), neg ? -1 * coef.second : 1 * coef.second);
     }
-    // P.addTerm(firstMono, neg ? -1 * coef : 1 * coef);
-    // this is just for easy testing of parseCoefficient()
-    //P.addTerm(firstMono, neg ? -1 : 1);
 
     // add remaining terms in the sum
     while (lex.peek().kind == Tok::PLUS || lex.peek().kind == Tok::MINUS) {
@@ -177,10 +166,6 @@ Polynomial Parser::parseSum() {
         } else { // no following term
             P.addTerm(Monomial::zeroMon(), neg ? -1 * coef.second : 1 * coef.second);
         }
-        //auto m = parseProduct();
-        // add back, same as above 
-        // P.addTerm(m, neg ? -1 * coef : 1 * coef);
-        //P.addTerm(m, neg ? -1 : 1);
     }
     return P;
 }
@@ -189,7 +174,6 @@ Constraint Parser::parse() {
     Constraint C;
     // handles the left hand side of the constraint, generating its polynomial representation
     Polynomial lhs = parseSum();
-    std::cout << "Parsed LHS: " << lhs.toString() << std::endl;
 
     Tok compTok = lex.peek().kind;
     if (compTok == Tok::GE || compTok == Tok::EQ) lex.pop();
@@ -199,7 +183,6 @@ Constraint Parser::parse() {
 
     // Move rhs to lhs just in case 
     for (auto [m,c] : rhs.terms) lhs.addTerm(m, -c);
-
     C.poly = std::move(lhs);
     C.cmp  = (compTok == Tok::EQ ? Cmp::EQ0 : Cmp::GE0);
 

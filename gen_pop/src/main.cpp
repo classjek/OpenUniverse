@@ -33,6 +33,15 @@ int main(){
             std::cerr << "Parse error in line: \"" << line << "\"\n  " << e.what() << '\n';
         }
     }
+    std::cout << '\n' << "How many constraints? " << constraints.size() << std::endl;
+    for (const auto& c : constraints) {
+        std::cout << "Constraint: " << c.poly.toString() << " " 
+                  << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
+        // // Print distinctness constraints
+        // for (const auto& [i, j] : c.neq) {
+        //     std::cout << "  Distinctness: var" << i << " != var" << j << '\n';
+        // }
+    }
 
     // fs::path parquet = fs::current_path() / "../data/yago3-10.parquet";
     // std::cout << "parquet path = " << parquet << '\n';

@@ -86,10 +86,31 @@ std::vector<AtomPtr> Monomial::expandedAtoms() const {
 }
 
 bool Monomial::operator<(const Monomial& o) const noexcept {
-    return items < o.items;
+    // We want equality to depend on the Atoms themselves, not their pointers
+    // return items < o.items;
+    if (items.size() != o.items.size()) return true; 
+    else {
+        for (size_t i = 0; i < items.size(); ++i) {
+            // compare each item in the two monomials
+            // if the first item is less than the other, return true
+            if (*(items[i].first) < *(o.items[i].first)) return true;
+            // if the first item is greater than the other, return false
+            if (*(o.items[i].first) < *(items[i].first)) return false;
+            // if they are equal, continue to next item
+        }
+        return false; // they must be equal
+    }
 }
 bool Monomial::operator==(const Monomial& o) const noexcept {
-    return items == o.items;
+    if (items.size() != o.items.size()) return false;
+    else {
+        for (size_t i = 0; i < items.size(); ++i) {
+            if (*(items[i].first) < *(o.items[i].first)) return false;
+            if (*(o.items[i].first) < *(items[i].first)) return false;
+            // if they are equal, continue to next item
+        }
+        return true;
+    }
 }
 
 // Polynomial Helpers //
@@ -112,6 +133,7 @@ std::shared_ptr<Polynomial> Polynomial::fromMonomial(const MonoPtr& m) {
     p->terms.emplace_back(m, 1);
     return p;
 }
+// something here aint working right, maybe canonicalise
 void Polynomial::addTerm(const MonoPtr& m, Coeff c) {
     if (c == 0) return;
     auto cmp = [](const Term& a, const Term& b){ return *(a.first) < *(b.first); };
@@ -129,6 +151,7 @@ std::string Polynomial::toString() const{
     for (const auto& [m,c] : terms) {
         if (!out.empty()) out += " + ";
         if(m->isZero()) { // if printing zero monomial
+            //std::cout << "printing zero monomial [" << std::to_string(c) << "]" << std::endl;
             out += std::to_string(c); // just print coeff
             continue;
         }
