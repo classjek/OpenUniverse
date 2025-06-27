@@ -2,6 +2,7 @@
 #include <cctype>
 #include <stdexcept>
 #include <iostream>
+#include <utility>
 
 namespace kb::parse {
 
@@ -62,7 +63,7 @@ struct Parser {
 private:
     // grammar helpers
     Polynomial parseSum();              // sum  ::= product ((+|-) product)*
-    Coeff      parseCoefficient();      // coefficient ::= number? '*'
+    std::pair<bool,Coeff>  parseCoefficient();      // coefficient ::= number? '*'
     MonoPtr    parseProduct();          // product ::= factor (factor)*
     MonoPtr    parseFactor();           // factor ::= atom | number
     AtomPtr    parseAtom();
@@ -112,13 +113,23 @@ MonoPtr Parser::parseFactor() {
         " text='" + lex.peek().text + "'");
 }
 
-Coeff Parser::parseCoefficient(){
+std::pair<bool, Coeff> Parser::parseCoefficient(){
     // no explicit coefficient, ex: Q(x,y)
-    if (lex.peek().kind != Tok::NUMBER) { return 1; }
+    if (lex.peek().kind != Tok::NUMBER) { 
+        return std::make_pair(true, 1); 
+    }
     // explicit coefficient, ex: 3*Q(x,y)
+    // check if there is a following term(true) or it is a constant(false)
+    // ex: 3 or 3*Q(x,y)
     std::string numStr = lex.pop().text;
+    if (lex.peek().kind != Tok::STAR) {
+        // std::cout << "This is a constant: " << static_cast<Coeff>(std::stoll(numStr)) << std::endl;
+        // no '*' after number, so just return the number
+        return std::make_pair(false, static_cast<Coeff>(std::stoll(numStr)));
+    }
+    // else we have a following monomial
     accept(Tok::STAR); // process *
-    return static_cast<Coeff>(std::stoll(numStr));
+    return std::make_pair(true, static_cast<Coeff>(std::stoll(numStr)));
 }
 
 MonoPtr Parser::parseProduct() {
@@ -140,16 +151,36 @@ Polynomial Parser::parseSum() {
     if (accept(Tok::PLUS) || (neg = accept(Tok::MINUS))) {}
     // parse first object and add its monomial to polynomial
     auto coef = parseCoefficient();
-    std::cout << "My coefficient is " << coef << std::endl;
-    auto firstMono = parseProduct();
-    P.addTerm(firstMono, neg ? -1 * coef : 1 * coef);
+    // have parseCoefficient return a bool and the coeff 
+    // if bool is false, then skip firstMono and create a zeroMono
+    // otherwise, use parseproduct()
+    // auto firstMono = parseProduct();
+    if (coef.first){ // there is following term after coeff
+        auto firstMono = parseProduct(); // process term
+        P.addTerm(firstMono, neg ? -1 * coef.second : 1 * coef.second);
+    } else { // no following term 
+        // add zeroMonomial to represent constant 
+        P.addTerm(Monomial::zeroMon(), neg ? -1 * coef.second : 1 * coef.second);
+    }
+    // P.addTerm(firstMono, neg ? -1 * coef : 1 * coef);
+    // this is just for easy testing of parseCoefficient()
+    //P.addTerm(firstMono, neg ? -1 : 1);
 
     // add remaining terms in the sum
     while (lex.peek().kind == Tok::PLUS || lex.peek().kind == Tok::MINUS) {
         neg = accept(Tok::MINUS); 
         if (!neg) accept(Tok::PLUS);
-        auto m = parseProduct();
-        P.addTerm(m, neg ? -1 : 1);
+        auto coef = parseCoefficient(); 
+        if (coef.first){ // there is term after coeff
+            auto m = parseProduct(); // process term 
+            P.addTerm(m, neg ? -1 * coef.second : 1 * coef.second);
+        } else { // no following term
+            P.addTerm(Monomial::zeroMon(), neg ? -1 * coef.second : 1 * coef.second);
+        }
+        //auto m = parseProduct();
+        // add back, same as above 
+        // P.addTerm(m, neg ? -1 * coef : 1 * coef);
+        //P.addTerm(m, neg ? -1 : 1);
     }
     return P;
 }

@@ -48,7 +48,6 @@ struct Monomial {
 
 using MonoPtr = std::shared_ptr<Monomial>;
 
-
 using Coeff = std::int64_t;
 using Term  = std::pair<MonoPtr, Coeff>;
 

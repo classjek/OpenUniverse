@@ -12,9 +12,6 @@ int main(){
     using namespace kb::parse; 
 
     namespace fs = std::filesystem;
-
-    // Q(x,b) - 3 >= 0
-    // G(z) - 5 >= 0
     
     std::cout << "Hello there guy, " << __cplusplus << std::endl;
     std::cout << "cwd  = " << fs::current_path() << '\n';
@@ -26,16 +23,16 @@ int main(){
     }
 
     // Working on constraint parsing
-    // std::vector<Constraint> constraints;
-    // std::string line;
-    // while (std::getline(in, line)) {
-    //     if (line.empty()) continue;                  
-    //     try {
-    //         constraints.push_back(parse::parseConstraint(line));
-    //     } catch (const std::exception& e) {
-    //         std::cerr << "Parse error in line: \"" << line << "\"\n  " << e.what() << '\n';
-    //     }
-    // }
+    std::vector<Constraint> constraints;
+    std::string line;
+    while (std::getline(in, line)) {
+        if (line.empty()) continue;                  
+        try {
+            constraints.push_back(parse::parseConstraint(line));
+        } catch (const std::exception& e) {
+            std::cerr << "Parse error in line: \"" << line << "\"\n  " << e.what() << '\n';
+        }
+    }
 
     // fs::path parquet = fs::current_path() / "../data/yago3-10.parquet";
     // std::cout << "parquet path = " << parquet << '\n';
@@ -63,36 +60,22 @@ int main(){
     // }
 
     // Initialize atoms q and r
-    auto q = std::make_shared<Atom>();
-    q->rel  = "Q";
-    q->args = {"x", "b"};
-    auto r = std::make_shared<Atom>();
-    r->rel = "R";
-    r->args = {"x", "y", "z"};
-    auto test_m = Monomial::zeroMon(); 
-    auto m1 = Monomial::fromAtom(q);
-    // poly stuff
-    auto p1 = Polynomial::fromMonomial(test_m);
-    auto p2 = Polynomial::fromMonomial(m1);
-
-    p1->addTerm(test_m, 3);
-    p1->addTerm(m1, -2);
-    p1->addTerm(test_m, 4);
-    std::cout << " Result3 poly: " << p1->toString() << '\n';
-
-    // // Initialize Monomials from these atoms
+    // auto q = std::make_shared<Atom>();
+    // q->rel  = "Q";
+    // q->args = {"x", "b"};
+    // auto r = std::make_shared<Atom>();
+    // r->rel = "R";
+    // r->args = {"x", "y", "z"};
+    // auto test_m = Monomial::zeroMon(); 
     // auto m1 = Monomial::fromAtom(q);
-    // auto m2 = Monomial::fromAtom(r);
-    // auto m3 = Monomial::multiply(m1,m2); 
-    // m3 = Monomial::multiply(m3, m2); 
-    // m3 = Monomial::multiply(m3, m1); 
+    // // poly stuff
+    // auto p1 = Polynomial::fromMonomial(test_m);
+    // auto p2 = Polynomial::fromMonomial(m1);
 
-    // // Initialize Polynomial from monomial
-    // auto p1 = Polynomial::fromMonomial(m1);
-    // p1->addTerm(m2, -4);
-    // p1->addTerm(m2, 2);
-    // p1->addTerm(m3, -1);
-    // std::cout << p1->toString() << std::endl;
+    // p1->addTerm(test_m, 3);
+    // p1->addTerm(m1, -2);
+    // p1->addTerm(test_m, 4);
+    // std::cout << " Result3 poly: " << p1->toString() << '\n';
 
     // auto head = conn.Query("SELECT * FROM yago LIMIT 10;");
     // for (auto &name : head->names) std::cout << name << '\t';
