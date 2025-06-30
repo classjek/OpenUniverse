@@ -23,10 +23,25 @@ int main(){
     }
 
     // Working on constraint parsing
+    std::vector<std::string> groundVariables; 
     std::vector<Constraint> constraints;
     std::string line;
+
+    // maybe change parseConstraint to take in groundVariables and then replace all generics
+    // with x_1, x_2 whatever, ordered per monomial
+    // unless we have some constraint, which could be tricky
+    // store atoms and monomials in maps
+    // potentially store polynomials in some lookup structure 
+    // check funky characters
+    // implement those annoying constraints 
+    // ^ think about how I will do grounding before doing this
+    // Change symID thing? 
     while (std::getline(in, line)) {
-        if (line.empty()) continue;                  
+        if (line.empty() || (line[0] == '#' && line[1] == '#')) continue;    
+        if (line[0] == ';') {
+            groundVariables.push_back(line.substr(1));
+            continue;
+        }              
         try {
             constraints.push_back(parse::parseConstraint(line));
         } catch (const std::exception& e) {
@@ -37,11 +52,15 @@ int main(){
     for (const auto& c : constraints) {
         std::cout << "Constraint: " << c.poly.toString() << " " 
                   << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
-        // // Print distinctness constraints
-        // for (const auto& [i, j] : c.neq) {
-        //     std::cout << "  Distinctness: var" << i << " != var" << j << '\n';
-        // }
     }
+
+    std::cout << "Ground Variables considered:" << std::endl;
+    for (const auto& gv: groundVariables){
+        std::cout << gv;
+        if (gv != groundVariables.back()) std::cout << ", ";
+    }
+
+
 
     // fs::path parquet = fs::current_path() / "../data/yago3-10.parquet";
     // std::cout << "parquet path = " << parquet << '\n';

@@ -24,6 +24,7 @@ struct Atom {
 };
 
 
+
 using AtomPtr = std::shared_ptr<Atom>;
 
 using Exponent = std::uint16_t;
@@ -65,6 +66,8 @@ struct Constraint {
     Polynomial poly;
     Cmp        cmp = Cmp::GE0;
     std::vector<std::pair<std::size_t,std::size_t>> neq;   // var‑var distinctness
+    
+    bool operator==(const Constraint& o) const noexcept;
 };
 
 struct Spot { std::size_t termIdx, monoIdx, argIdx; };

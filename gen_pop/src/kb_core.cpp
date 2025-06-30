@@ -114,7 +114,6 @@ bool Monomial::operator==(const Monomial& o) const noexcept {
 }
 
 // Polynomial Helpers //
-// 
 void Polynomial::canonicalise() {
     std::sort(terms.begin(), terms.end(),
         [](const Term& a, const Term& b){ return *(a.first) < *(b.first); });
@@ -164,6 +163,23 @@ std::string Polynomial::toString() const{
         } 
     }
     return out; 
+}
+
+static bool termVecEqual(const std::vector<Term>& a, const std::vector<Term>& b){
+    if (a.size() != b.size()) return false;
+    for (std::size_t i = 0; i < a.size(); ++i) {
+        if (a[i].second != b[i].second) return false; // coeff
+        if (a[i].first->toString() != b[i].first->toString()) // monomial
+            return false;
+    }
+    return true;
+}
+
+bool Constraint::operator==(const Constraint& o) const noexcept
+{
+    return cmp == o.cmp
+        && neq == o.neq
+        && termVecEqual(poly.terms, o.poly.terms);
 }
 
 }
