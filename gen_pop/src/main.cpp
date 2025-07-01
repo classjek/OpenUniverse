@@ -1,6 +1,7 @@
 #include "duckdb.hpp"
 #include "kb_core.h"
 #include "parse.h"
+#include "equivalence.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -10,11 +11,9 @@ int main(){
     //using namespace duckdb; 
     using namespace kb;
     using namespace kb::parse; 
+    using namespace kb::eq;
 
     namespace fs = std::filesystem;
-    
-    std::cout << "Hello there guy, " << __cplusplus << std::endl;
-    std::cout << "cwd  = " << fs::current_path() << '\n';
 
     std::ifstream in("../data/constraints.txt");      // adjust path if needed
     if (!in) {
@@ -22,43 +21,49 @@ int main(){
         return 1;
     }
 
-    // Working on constraint parsing
-    std::vector<std::string> groundVariables; 
+    std::unordered_set<std::string> groundVariables;
     std::vector<Constraint> constraints;
     std::string line;
 
-    // maybe change parseConstraint to take in groundVariables and then replace all generics
-    // with x_1, x_2 whatever, ordered per monomial
-    // unless we have some constraint, which could be tricky
-    // store atoms and monomials in maps
-    // potentially store polynomials in some lookup structure 
-    // check funky characters
-    // implement those annoying constraints 
-    // ^ think about how I will do grounding before doing this
-    // Change symID thing? 
     while (std::getline(in, line)) {
         if (line.empty() || (line[0] == '#' && line[1] == '#')) continue;    
         if (line[0] == ';') {
-            groundVariables.push_back(line.substr(1));
+            groundVariables.insert(line.substr(1));
             continue;
-        }              
+        }      
         try {
-            constraints.push_back(parse::parseConstraint(line));
+            // Only add constraint if not already present
+            auto constraint = parse::parseConstraint(line);
+            if (std::find(constraints.begin(), constraints.end(), constraint) == constraints.end()) {
+                constraints.push_back(constraint);
+            }
         } catch (const std::exception& e) {
             std::cerr << "Parse error in line: \"" << line << "\"\n  " << e.what() << '\n';
         }
     }
-    std::cout << '\n' << "How many constraints? " << constraints.size() << std::endl;
+    // Display constraints
+    std::cout << '\n' << "Printing all " << constraints.size() << " Constraints:" << std::endl;
     for (const auto& c : constraints) {
-        std::cout << "Constraint: " << c.poly.toString() << " " 
-                  << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
+        std::cout << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
     }
 
-    std::cout << "Ground Variables considered:" << std::endl;
-    for (const auto& gv: groundVariables){
-        std::cout << gv;
-        if (gv != groundVariables.back()) std::cout << ", ";
-    }
+    // Test out genMonomialMap function
+    // std::cout << '\n' << "Testing genMonomialMap" << std::endl;
+    // auto monoMap = kb::eq::genMonomialMap(constraints);
+    // for (const auto& [sig, monoPtr] : monoMap) {
+    //     std::cout << sig << "  ->  " << monoPtr->toString() << '\n';
+    // }
+
+    std::cout << '\n' << "Testing Equivalences Between Monomials That Differ in Ground Variables" << std::endl;
+    auto mymap = computeGroundNameClasses(constraints, groundVariables);
+
+    // Generate equivalence map
+    // equiv_map = gen_equiv_map(constraints)
+    // call function to calculate quantifier rank
+    // call ground function to generate grounding: ground(constraints, quantRank)
+    // need to make sure groundings take into account g_0 != g_1
+    // another function to write this to a .gms file, keeping track of 
+    // what monomials go to which variables 
 
 
 

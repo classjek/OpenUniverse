@@ -16,7 +16,6 @@ std::vector<std::uint32_t> computeGenericClasses(const std::vector<Constraint>& 
 
 std::unordered_map<Sym, Sym> computeGroundNameClasses(
                         const std::vector<Constraint>& constraints,
-                        const std::unordered_set<Sym>& groundNames,
-                        const std::vector<std::uint32_t>& generic2class);
+                        const std::unordered_set<Sym>& groundNames);
 
 } 

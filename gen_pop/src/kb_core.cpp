@@ -22,7 +22,6 @@ bool Atom::operator==(const Atom& o) const noexcept {
     return rel == o.rel && args == o.args;
 }
 
-
 // Monomial Helpers
 void Monomial::canonicalise() {
     std::sort(items.begin(), items.end(),
@@ -39,9 +38,6 @@ void Monomial::canonicalise() {
 
 std::string Monomial::toString() const {
     std::string out;
-    // if (items.size() == 1 && (*items[0].first).rel.empty()){
-    //     std::cout << "Trying to print zero monomial bruh" << std::endl;
-    // }
     for (const auto& [ap, e] : items) {
         if (!out.empty()) out += '*';
         out += ap->toString();
@@ -163,6 +159,16 @@ std::string Polynomial::toString() const{
         } 
     }
     return out; 
+}
+
+std::string Polynomial::replaceString(std::string toReplace) const{
+    std::string str = this->toString();
+    size_t pos = 0;
+    while ((pos = str.find(toReplace, pos)) != std::string::npos) {
+        str.replace(pos, toReplace.length(), "G");
+        pos += 1;
+    }
+    return str;
 }
 
 static bool termVecEqual(const std::vector<Term>& a, const std::vector<Term>& b){
