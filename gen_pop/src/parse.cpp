@@ -6,13 +6,9 @@
 
 namespace kb::parse {
 
-// TODO: Also want to allow the user to indicate variables that
-// they want to consider 
-// and some way to indicate which variables are generics
-
 // Tokenizer
 enum class Tok { IDENT, NUMBER, PLUS, MINUS, STAR, LP, RP, COMMA,
-                 GE, EQ, END };
+                 GE, EQ, NEQ, COLON, END };
 
 struct Token { Tok kind; std::string text; };
 
@@ -22,6 +18,15 @@ public:
 
     const Token &peek() const { return cur; }
     Token        pop()  { Token t = cur; next(); return t; }
+    Token peekNext() const {
+        const char *saveP = p;
+        Token saveCur     = cur;
+        // create a throw-away lexer just to advance once
+        Lexer tmp(*this);
+        tmp.pop();                 // skip current token
+        Token nxt = tmp.peek();
+        return nxt;
+    }
 
 private:
     void next() {
@@ -46,7 +51,9 @@ private:
             case '(': cur = {Tok::LP,   "("}; return;
             case ')': cur = {Tok::RP,   ")"}; return;
             case ',': cur = {Tok::COMMA,","}; return;
-            case '>': if (*p=='='){ ++p; cur={Tok::GE, ">="}; return; }
+            case ':': cur = {Tok::COLON, ":"}; return;
+            case '>': if (*p=='='){ ++p; cur={Tok::GE, ">="}; return; }; break;
+            case '!': if (*p=='='){ ++p; cur = {Tok::NEQ, "!="}; return; } break;
             default:  break;
         }
         if (c=='=') { cur={Tok::EQ, "="}; return; }
@@ -71,9 +78,17 @@ private:
     // utility
     bool accept(Tok k){ if(lex.peek().kind==k){ lex.pop(); return true;} return false; }
     void expect(Tok k,const char*msg){ if(!accept(k)) throw std::runtime_error(msg);}  
+    std::size_t varIndex(const std::string& name, std::vector<std::string>& vars);
 
     Lexer lex;
 };
+
+std::size_t varIndex(const std::string& name, std::vector<std::string>& vars) {
+    auto it = std::find(vars.begin(), vars.end(), name);
+    if (it != vars.end()) return std::distance(vars.begin(), it);
+    vars.push_back(name);
+    return vars.size()-1;
+}
 
 AtomPtr Parser::parseAtom() {
     Token id = lex.pop();               
@@ -172,6 +187,22 @@ Polynomial Parser::parseSum() {
 
 Constraint Parser::parse() {
     Constraint C;
+    // handle distinctness guard like x != y : 
+    std::vector<std::string> vars;               // keeps order of seen variables
+
+    // Handle distinctness guard: x != y
+    if (lex.peek().kind == Tok::IDENT && lex.peekNext().kind == Tok::NEQ) {
+        do {
+            Token a = lex.pop();                // IDENT
+            expect(Tok::NEQ, "need '!=' in guard");
+            Token b = lex.pop();                // IDENT
+
+            C.neq.emplace_back(a.text, b.text);
+
+        } while (accept(Tok::COMMA));
+        expect(Tok::COLON, "missing ':' after guard");
+    }
+
     // handles the left hand side of the constraint, generating its polynomial representation
     Polynomial lhs = parseSum();
 

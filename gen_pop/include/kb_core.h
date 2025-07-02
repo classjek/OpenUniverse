@@ -66,7 +66,9 @@ enum class Cmp : std::uint8_t { EQ0, GE0 };
 struct Constraint {
     Polynomial poly;
     Cmp        cmp = Cmp::GE0;
-    std::vector<std::pair<std::size_t,std::size_t>> neq;   // var‑var distinctness
+
+    // what is this used for? 
+    std::vector<std::pair<Sym,Sym>> neq;   // var‑var distinctness
     
     bool operator==(const Constraint& o) const noexcept;
 };

@@ -5,11 +5,6 @@
 
 namespace kb::eq {
 
-// what should this be? 
-// Because eventually what? 
-// We will go to make a grounding and how will we do that? 
-// and what will this grounding be used for? 
-// consider new problem formulation
 std::unordered_map<std::string, MonoPtr> genMonomialMap(const std::vector<Constraint>& constraints);
 
 std::vector<std::uint32_t> computeGenericClasses(const std::vector<Constraint>& constraints);

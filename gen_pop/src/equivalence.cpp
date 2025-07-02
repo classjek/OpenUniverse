@@ -25,10 +25,24 @@ std::vector<std::uint32_t> computeGenericClasses(const std::vector<Constraint>& 
 }
 
 // Given a vector like those in appearanceMap, generate a hash 
-uint64_t hash_vec(const std::vector<uint64_t>& v) {
+uint64_t hashVec(const std::vector<uint64_t>& v) {
     uint64_t h = v.size();
     for (uint64_t x : v)
         h = (h << 1) ^ (x + 0x9e3779b97f4a7c15ULL + (h >> 3));
+    return h;
+}
+
+// Given a vector representing distinctness constraints (i.e. Constraint.neq), form a hash 
+size_t hashDistinct(const std::vector<std::pair<Sym,Sym>>& neq) {
+    std::size_t h = 0xcbf29ce484222325ULL;            // FNV-1a offset
+    constexpr std::size_t prime = 0x100000001b3ULL;   // FNV-1a prime
+    for (auto [u,v] : neq) {
+        if (v < u) std::swap(u,v);        // make (u,v) canonical, so (y,x)≡(x,y)
+        std::size_t hu = std::hash<Sym>{}(u);
+        std::size_t hv = std::hash<Sym>{}(v);
+        h ^= hu;  h *= prime;
+        h ^= hv;  h *= prime;
+    }
     return h;
 }
 
@@ -47,8 +61,11 @@ std::unordered_map<Sym, Sym> computeGroundNameClasses(const std::vector<Constrai
                     if (groundNames.find(arg) != groundNames.end()) { // if arg is a ground name
                         // add that arg to the map if not already there
                         auto& vec = appearanceMap.try_emplace(arg).first->second;
-                        auto hash = std::hash<std::string>{}(constraint.poly.replaceString(arg)); // generate hash from replacedString
-                        vec.push_back(hash); // add the hash of the replaced string to the vector
+                        auto poly_hash = std::hash<std::string>{}(constraint.poly.replaceString(arg)); // generate hash from replacedString
+                        auto neq_hash = hashDistinct(constraint.neq); // generate hash from distinctness guard
+                        std::size_t combined_hash = poly_hash ^ (neq_hash + 0x9e3779b97f4a7c15ULL + (poly_hash<<6) + (poly_hash>>2)); // combine both hashes
+                        vec.push_back(combined_hash); // add the hash to groundName's vector
+                        // vec.push_back(poly_hash); // add the hash of the replaced string to the vector
                     }
                 }
                 
@@ -56,14 +73,13 @@ std::unordered_map<Sym, Sym> computeGroundNameClasses(const std::vector<Constrai
         }
     }
 
-
     // Now that all constraints have been searched through 
     std::unordered_map<uint64_t, std::vector<Sym>> classes;
     for (auto& [name, vec] : appearanceMap) { // search through appearanceMap
         // sort and remove duplicates
         std::sort(vec.begin(), vec.end());
         vec.erase(std::unique(vec.begin(), vec.end()), vec.end());
-        uint64_t h = hash_vec(vec); // hash resulting vector
+        uint64_t h = hashVec(vec); // hash resulting vector
 
         auto it = classes.find(h);
         if (it == classes.end()) { // if hash is not present in map, add it and vector with name

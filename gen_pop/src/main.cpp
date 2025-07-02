@@ -45,6 +45,13 @@ int main(){
     std::cout << '\n' << "Printing all " << constraints.size() << " Constraints:" << std::endl;
     for (const auto& c : constraints) {
         std::cout << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
+        if (!c.neq.empty()) {
+            std::cout << "  Distinctness guard: ";
+            for (const auto& [a, b] : c.neq) {
+                std::cout << a << " != " << b << ", ";
+            }
+            std::cout << '\n';
+        }
     }
 
     // Test out genMonomialMap function
