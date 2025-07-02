@@ -43,18 +43,18 @@ int main(){
             std::cerr << "Parse error in line: \"" << line << "\"\n  " << e.what() << '\n';
         }
     }
-    // Display constraints
-    std::cout << '\n' << "Printing all " << constraints.size() << " Constraints:" << std::endl;
-    for (const auto& c : constraints) {
-        std::cout << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
-        if (!c.neq.empty()) {
-            std::cout << "  Distinctness guard: ";
-            for (const auto& [a, b] : c.neq) {
-                std::cout << a << " != " << b << ", ";
-            }
-            std::cout << '\n';
-        }
-    }
+    // // Display constraints
+    // std::cout << '\n' << "Printing all " << constraints.size() << " Constraints:" << std::endl;
+    // for (const auto& c : constraints) {
+    //     std::cout << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
+    //     // if (!c.neq.empty()) {
+    //     //     std::cout << "  Distinctness guard: ";
+    //     //     for (const auto& [a, b] : c.neq) {
+    //     //         std::cout << a << " != " << b << ", ";
+    //     //     }
+    //     //     std::cout << '\n';
+    //     // }
+    // }
 
     // Test out genMonomialMap function
     // std::cout << '\n' << "Testing genMonomialMap" << std::endl;
@@ -66,13 +66,44 @@ int main(){
     // std::cout << '\n' << "Testing Equivalences Between Monomials That Differ in Ground Variables" << std::endl;
     // auto mymap = computeGroundNameClasses(constraints, groundVariables);
 
-    std::cout << "===== canonical atom pool =====\n";
-    for (const auto& [key, atomPtr] : atomPool) {
-        // key is the canonical string "Rel(arg1,arg2,...)"
-        // atomPtr is the shared_ptr<Atom> that every monomial re-uses
-        std::cout << key << "   @ptr=" << atomPtr.get() << '\n';
+    // std::cout << "===== canonical atom pool =====\n";
+    // for (const auto& [key, atomPtr] : atomPool) {
+    //     // key is the canonical string "Rel(arg1,arg2,...)"
+    //     // atomPtr is the shared_ptr<Atom> that every monomial re-uses
+    //     std::cout << key << "   @ptr=" << atomPtr.get() << '\n';
+    // }
+    // std::cout << "================================\n";
+
+    // std::cout << "Testing Mapping Function" << std::endl;
+    std::unordered_map<Sym, std::string> realMap = relVarMap(constraints);
+    // for (const auto& [sym, var] : realMap) {
+    //     std::cout << sym << " -> " << var << '\n';
+    // }
+
+    // Display constraints
+    std::cout << '\n' << "Printing all " << constraints.size() << " Constraints:" << std::endl;
+    for (const auto& c : constraints) {
+        std::cout << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
+        //std::cout << c.poly.toStringWithMap(realMap) << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n" << '\n';
     }
-    std::cout << "================================\n";
+
+    // Generate .gms constraint strings
+    std::unordered_set<std::string> gmsConstraints;
+    for (const auto& constraint : constraints){
+        std::string gmsStr = constraint.poly.toStringWithMap(realMap);
+        if (constraint.cmp == Cmp::GE0) {
+            gmsStr += " =g= 0 ;" ;
+        } else {
+            gmsStr += " =e= 0 ;";
+        }
+        gmsConstraints.insert(gmsStr);
+    }
+
+    std::cout << "Constraints yo:" << std::endl;
+    int idx = 1; 
+    for (const auto& gconstraint : gmsConstraints){
+        std::cout << "c" + std::to_string(idx++) + ".. " << gconstraint << '\n';
+    }
 
 
 

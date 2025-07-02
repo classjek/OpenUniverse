@@ -13,4 +13,6 @@ std::unordered_map<Sym, Sym> computeGroundNameClasses(
                         const std::vector<Constraint>& constraints,
                         const std::unordered_set<Sym>& groundNames);
 
+std::unordered_map<Sym, std::string> relVarMap(const std::vector<Constraint>& constraints);
+
 } 

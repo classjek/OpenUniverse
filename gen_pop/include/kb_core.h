@@ -35,6 +35,7 @@ struct Monomial {
     std::vector<MonoItem> items;   // kept lexicographically sorted on Atom
     void canonicalise();           // sort + merge same atom (implementation later)
 
+    std::string toStringWithMap(const std::unordered_map<Sym, std::string>& relVarMap) const;
     std::string toString() const;
     static std::shared_ptr<Monomial> fromAtom(const AtomPtr& a);
     static std::shared_ptr<Monomial> zeroMon();
@@ -42,6 +43,7 @@ struct Monomial {
     static std::shared_ptr<Monomial> multiply(const std::shared_ptr<Monomial>& A,
                                               const std::shared_ptr<Monomial>& B);
     std::vector<AtomPtr> expandedAtoms() const;        // debug helper
+    std::vector<AtomPtr> notExpandedAtoms() const; // used to generate .gms file
 
     bool operator<(const Monomial& o) const noexcept;  // lexicographic on items
     bool operator==(const Monomial& o) const noexcept;
@@ -57,6 +59,7 @@ struct Polynomial {
     void canonicalise();         // sort + merge same monomials (implementation later)
     static std::shared_ptr<Polynomial> fromMonomial(const MonoPtr& m);
     void addTerm(const MonoPtr& m, Coeff c);
+    std::string toStringWithMap(const std::unordered_map<Sym, std::string>& relVarMap) const;
     std::string toString() const; 
     std::string replaceString(std::string toReplace) const; 
 };

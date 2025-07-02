@@ -1,5 +1,6 @@
 #include "kb_core.h"
 #include <iostream>
+#include <stdexcept>
 
 namespace kb {
 // Atom Helpers
@@ -36,6 +37,22 @@ void Monomial::canonicalise() {
     items.swap(tmp);
 }
 
+// TODO special handling on zero Monomial here
+std::string Monomial::toStringWithMap(const std::unordered_map<Sym, std::string>& relVarMap) const {
+    std::string out; 
+    for (const auto& [ap,e] : items) {
+        if (!out.empty()) out += '*';
+        // Lookup atom in map
+        auto it = relVarMap.find(ap->rel);
+        if (it != relVarMap.end()) {
+            out += it->second;  // use mapped variable name
+            if (e > 1) out += "**" + std::to_string(e);
+        } else {
+            throw std::runtime_error("Atom is not in atom map?!?");
+        }
+    }
+    return out; 
+}
 std::string Monomial::toString() const {
     std::string out;
     for (const auto& [ap, e] : items) {
@@ -80,6 +97,14 @@ std::vector<AtomPtr> Monomial::expandedAtoms() const {
         for (Exponent k = 0; k < e; ++k) out.push_back(ap);
     return out;
 }
+
+std::vector<AtomPtr> Monomial::notExpandedAtoms() const {
+    std::vector<AtomPtr> out;
+    for (const auto& [ap, e] : items)
+        out.push_back(ap);
+    return out;
+}
+
 
 bool Monomial::operator<(const Monomial& o) const noexcept {
     // We want equality to depend on the Atoms themselves, not their pointers
@@ -140,6 +165,25 @@ void Polynomial::addTerm(const MonoPtr& m, Coeff c) {
         terms.insert(it, {m, c});
     }
     canonicalise();  // ensure polynomial is in canonical form after adding
+}
+std::string Polynomial::toStringWithMap(const std::unordered_map<Sym, std::string>& relVarMap) const {
+    std::string out;
+    for (const auto& [m,c] : terms) {
+        if (!out.empty()) out += " + ";
+        if(m->isZero()) { // if printing zero monomial
+            //std::cout << "printing zero monomial [" << std::to_string(c) << "]" << std::endl;
+            out += std::to_string(c); // just print coeff
+            continue;
+        }
+        if (c == 1) {
+            out += m->toStringWithMap(relVarMap);  
+        } else if (c == -1) {
+            out += '-' + m->toStringWithMap(relVarMap);  
+        } else {
+            out += std::to_string(c) + '*' + m->toStringWithMap(relVarMap); 
+        } 
+    }
+    return out; 
 }
 std::string Polynomial::toString() const{
     std::string out; 

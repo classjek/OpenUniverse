@@ -100,4 +100,25 @@ std::unordered_map<Sym, Sym> computeGroundNameClasses(const std::vector<Constrai
     return std::unordered_map<Sym, Sym>();
 } 
 
+// TODO implement special handling for zero atom so it doesn't get mapped to anything
+std::unordered_map<Sym, std::string> relVarMap(const std::vector<Constraint>& constraints){
+    std::unordered_map<Sym, std::string> rel2var;
+    int varIdx = 1;
+    for (const auto& c : constraints) {
+        for (const auto& [monoPtr, coeff] : c.poly.terms) {
+            for (auto ap : monoPtr->notExpandedAtoms()) {
+                const Sym& r = ap->rel; // consider relation r
+                if (r.empty()) continue; // if r is empty, skip it
+
+                if (!rel2var.contains(r)) { // if r not present in map
+                    rel2var[r] = "x" + std::to_string(varIdx++);
+                    // std::cout << " map: " << r << " = " << "x" + std::to_string(varIdx) << std::endl;  
+                }
+            }
+        }
+    }
+    return rel2var; 
+}
+
+
 }
