@@ -2,6 +2,7 @@
 #include "kb_core.h"
 #include "parse.h"
 #include "equivalence.h"
+#include "kb_intern.h"
 #include <fstream>
 #include <iostream>
 #include <vector>
@@ -12,6 +13,7 @@ int main(){
     using namespace kb;
     using namespace kb::parse; 
     using namespace kb::eq;
+    using kb::intern::atomPool;
 
     namespace fs = std::filesystem;
 
@@ -61,8 +63,18 @@ int main(){
     //     std::cout << sig << "  ->  " << monoPtr->toString() << '\n';
     // }
 
-    std::cout << '\n' << "Testing Equivalences Between Monomials That Differ in Ground Variables" << std::endl;
-    auto mymap = computeGroundNameClasses(constraints, groundVariables);
+    // std::cout << '\n' << "Testing Equivalences Between Monomials That Differ in Ground Variables" << std::endl;
+    // auto mymap = computeGroundNameClasses(constraints, groundVariables);
+
+    std::cout << "===== canonical atom pool =====\n";
+    for (const auto& [key, atomPtr] : atomPool) {
+        // key is the canonical string "Rel(arg1,arg2,...)"
+        // atomPtr is the shared_ptr<Atom> that every monomial re-uses
+        std::cout << key << "   @ptr=" << atomPtr.get() << '\n';
+    }
+    std::cout << "================================\n";
+
+
 
     // Generate equivalence map
     // equiv_map = gen_equiv_map(constraints)

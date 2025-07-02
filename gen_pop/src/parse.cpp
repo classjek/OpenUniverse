@@ -1,11 +1,12 @@
 #include "parse.h"
+#include "kb_intern.h"
 #include <cctype>
 #include <stdexcept>
 #include <iostream>
 #include <utility>
+using kb::intern::internAtom;
 
 namespace kb::parse {
-
 // Tokenizer
 enum class Tok { IDENT, NUMBER, PLUS, MINUS, STAR, LP, RP, COMMA,
                  GE, EQ, NEQ, COLON, END };
@@ -91,6 +92,7 @@ std::size_t varIndex(const std::string& name, std::vector<std::string>& vars) {
 }
 
 AtomPtr Parser::parseAtom() {
+    // Extract id and args, i.e. Q and x,b from Q(x,b)
     Token id = lex.pop();               
     expect(Tok::LP, "Expected '('");
     std::vector<Sym> args;
@@ -102,9 +104,10 @@ AtomPtr Parser::parseAtom() {
         } while (accept(Tok::COMMA));
     }
     expect(Tok::RP, "Expected ')'");
-    auto a = std::make_shared<Atom>();
-    a->rel = id.text; a->args = std::move(args);
-    return a;
+
+    // Add atom to canonical atom store if not already there
+    // return pointer to atom in store
+    return internAtom(id.text, args);
 }
 
 MonoPtr Parser::parseFactor() {
