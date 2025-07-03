@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <filesystem>
+#include <string_view>
 
 int main(){
     //using namespace duckdb; 
@@ -99,13 +100,37 @@ int main(){
         gmsConstraints.insert(gmsStr);
     }
 
-    std::cout << "Constraints yo:" << std::endl;
+    std::cout << "===== .gms file =====" << std::endl;
+    // Variables Line
+    std::string varLine = "Variables ";
+    for (const auto& [sym, var] : realMap) {
+        varLine += var + ", ";
+    }
+    // Equation Line and Equations
+    std::string eqLine = "Equations ";
+    std::string eqs; 
     int idx = 1; 
     for (const auto& gconstraint : gmsConstraints){
-        std::cout << "c" + std::to_string(idx++) + ".. " << gconstraint << '\n';
+        eqLine += "c" + std::to_string(idx) + ", ";
+        eqs += "c" + std::to_string(idx++) + ".. " + gconstraint + '\n';
+        //std::cout << "c" + std::to_string(idx++) + ".. " << gconstraint << '\n';
     }
+    std::cout << std::string_view(varLine.data(), varLine.size()-2) << " ;" << std::endl;
+    std::cout << std::string_view(eqLine.data(), eqLine.size()-2) << " ;" << std::endl;
+    std::cout << eqs << std::endl;
 
-
+    // Write to .gms file
+    std::ofstream out("problem.gms");
+    if (!out) {
+        std::cerr << "Error: cannot open output file\n";
+        return 1;
+    }
+    out << std::string_view(varLine.data(), varLine.size()-2) << " ;\n";
+    out << std::string_view(eqLine.data(), eqLine.size()-2) << " ;\n";
+    out << eqs;
+    
+    out.close();
+    std::cout << "Wrote problem.gms successfully" << std::endl;
 
     // Generate equivalence map
     // equiv_map = gen_equiv_map(constraints)
