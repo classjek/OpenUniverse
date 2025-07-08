@@ -2,12 +2,39 @@
 **/build/
 **/data/
 
+# Generic Build Artifacts
+*.o
+*.obj
+*.lo
+*.slo
+*.Po
+*.Tpo
+*.d
+*.a
+*.so*
+*.dylib
+*.dll
+*.exe
+*.out
+.libs/
+.deps/
+Makefile
+Makefile.in
+config.cache
+config.log
+config.status
+libtool
+autom4te.cache/
+
 # Compiled object files, libraries, executables
 gen_pop/*.o
 gen_pop/*.obj
 gen_pop/*.so
 gen_pop/*.dylib
 gen_pop/*.exe
+
+# SparsePOP Executable
+sparsePOP_dev/sparsePOP
 
 # DuckDB extension cache
 ~/.duckdb/
