@@ -2597,29 +2597,39 @@ void conversion_part2(
     // ADD VARIABLE MULTIPLICATION HERE // 	
     // ADD VARIABLE MULTIPLICATION HERE // 	
     // ADD VARIABLE MULTIPLICATION HERE // 	
-    // After Basis Supports are created and Filtered //
-    // Before global support set and moment matrix generation //
-    // bindices: basis indices for each constraint //
-    // BasisSupports: basis supports for each constraint //
-    // sr.Polysys.dimVar: number of variables //
-    //////////////////////////////////////////
+    // After Basis Supports are created and Filtered // 
+    // Before global support set and moment matrix generation // 
+    // bindices: basis indices for each constraint // 
+    // BasisSupports: basis supports for each constraint // 
+    // sr.Polysys.dimVar: number of variables // 
+    /////////////////////////////////////////// 
 
 	sr.timedata[9] = (double)clock();
 	val = getmem();
 	//cout << "9 " << sr.timedata[9] << endl;
     
     // Prepare for moment matrix creation
-	mmsize = BasisSupports.supsetArray.size() - sr.Polysys.numsys();
-	vector<class bass_info> bassinfo_mm(mmsize);
+	mmsize = BasisSupports.supsetArray.size() - sr.Polysys.numsys(); // get number of moment matrices
+	vector<class bass_info> bassinfo_mm(mmsize); // will hold basis information for each moment matrix
+	// Fills bassinfo_mm with the variable sets and supports for each moment matrix, using the basis indices and supports from earlier steps.
 	get_momentmatrix_basups(sr.Polysys, sr.bindices, BasisSupports.supsetArray, bassinfo_mm);
-	sr.timedata[10] = (double)clock();
+
+    sr.timedata[10] = (double)clock();
 	val = getmem();
-    
+
+    // Generate all the monomials (supports) that will appear as entries in the moment matrices for the SDP relaxation.
+    // 1) Takes the basis supports (monomials) for that matrix that are determined in genBasisSupports and stored in bassinfo_mm
+    // 2) Forms all possible products of these monomials
+    // 3) Collects all unique resulting monomials. these are the supports that will actually appear as entries in the moment matrix
+    // supports generated are stored in a spvec_array called mmsups
+    // they are not explicitly labeled or grouped by which constraint or basis vector they came from
 	get_allsups_in_momentmatrix(sr.Polysys.dimvar(), mmsize, bassinfo_mm, mmsups);
 	sr.timedata[11] = (double)clock();
 	val = getmem();
     
 	//generate all supports being consisted POP
+    // Allocates a new spvec_array (allsups) big enough to hold all monomials from both
+    // allsups_st (objective/constraints) and mmsups (moment matrices)
 	allsups.alloc(allsups_st.pnz_size + mmsups.pnz_size,
 	allsups_st.vap_size + mmsups.vap_size );
 	allsups.pnz_size = 0;
@@ -2629,11 +2639,10 @@ void conversion_part2(
 	if(mmsups.vap_size > 0){
 		pushsups(mmsups, allsups);
 	}
+    // Simplifies the array (removes duplicates, sorts, etc) //
 	simplification(allsups);
 	sr.timedata[12] = (double)clock();
 	val = getmem();
-	//cout << "12 " << sr.timedata[12] << endl;
-    
 	//eliminate vain supports of allsupports, using special complementary supports x(a) = 0
 	//binary constraints xi^2 -xi = 0 and SquareOne constraints xi^2 - 1 = 0 
 	if(sr.param.complementaritySW == YES  && removesups.pnz_size > 0){
@@ -2647,12 +2656,11 @@ void conversion_part2(
 	}
 	sr.timedata[13] = (double)clock();
 	val = getmem();
-	//cout << "13 " << sr.timedata[13] << endl;
     
+    // convert global supports(allsups) to supset format(allSups)
 	initialize_supset(allsups, allSups);
 	sr.timedata[14] = (double)clock();
 	val = getmem();
-	//cout << "14 " << sr.timedata[14] << endl;
     
 	bool flag = true;
 	for(int i=0;i<sr.Polysys.dimVar ;i++){
