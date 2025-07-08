@@ -97,17 +97,9 @@ void s3r::redundant_OneBounds(class supsetSet & BasisSupports, class supSet & al
     list<sup>::iterator b2 = redSup.begin();
     list<sup>::iterator e2 = redSup.supList.end();
     list<sup>::iterator r1 = OneSup.begin();
-/*
-	cout << "all " << endl;
-    allSup.disp();
-	cout << "redSup" << endl;
-	redSup.disp();
-	cout << "OneSup " << endl;
-*/
+
     set_difference(b1, e1, b2, e2, inserter(OneSup.supList, r1), comp_sup);
     OneSup.sort();
-    //cout << "Size of OneSup = " << OneSup.size() << endl;
-//    OneSup.disp();
 }
 
 void s3r::redundant_ZeroBounds(class supsetSet & BasisSupports, class supSet & allSup, class supSet & ZeroSup){
@@ -274,7 +266,6 @@ int write_bassinfo(string outname, class spvec_array & bassinfo){
     
 }
 
-
 // 2010-01-09 H.Waki
 void get_lsdp(class spvec_array & allsups, class mysdp & psdp, vector<int> & linearterms, class spvec_array & xIdxVec){
 #ifdef DEBUG
@@ -322,36 +313,13 @@ void get_lsdp(class spvec_array & allsups, class mysdp & psdp, vector<int> & lin
 void variable_numbering(class spvec_array & allsups, vector<int> plist, class mysdp & psdp, vector<int> & linearterms, class spvec_array & xIdxVec){
 	//if this value is i+1, index i is a monomial with degree 1.
 	//allsups has been already sorted and is unique.
-	//cout<<" ***> variable_numbering ---> "<<endl;
-	//psdp.disp();
-	/*
-	for(int i=0;i<plist.size();i++){
-		cout << "plist[" << i << "]=" << plist[i] << endl;
-	}
-	*/
     int as=0;
     int pp=0;
-/*    
-      allsups.disp();
-      cout << "allsups.pnz_size = " << allsups.pnz_size << endl;
-      cout << "allsups.pnz = " << endl;
-      for(int i=0; i<allsups.pnz[0].size(); i++){
-      cout << allsups.pnz[0][i] << ", " << allsups.pnz[1][i] << endl;
-      }
-      cout << endl;
-      cout << "allsups.vap_size = " << allsups.vap_size << endl;
-      cout << "allsups.vap = " << endl;
-      for(int i=0; i<allsups.vap[0].size(); i++){
-      cout << allsups.vap[0][i] << ", " << allsups.vap[1][i] << endl;
-      }
-      cout << endl;
-	*/
     int novar=0;
     
     if(allsups.pnz[1][0]!=0){
         novar=1;
     }
-    //cout << "nover = " << novar << endl;
     int deg1terms = 0;
     int apos, ppos;
     int amax, pmax;
@@ -428,10 +396,8 @@ void variable_numbering(class spvec_array & allsups, vector<int> plist, class my
         }
         novar++;
     }
-    //genxIdxVec(allsups, xIdxVec, deg1terms);
     xIdxVec = allsups;
     psdp.mDim = novar-1;
-    //cout<<" <--- variable_numbering <*** "<<endl<<endl;
 }
 
 //
@@ -467,12 +433,9 @@ void count_upper_nnz(vector<int> plist, class mysdp & psdp){
             nonobj_size++;
         }
     }
-    
     psdp.utnnz[0][psdp.utsize] = psdp.ele.sup.pnz[0][plist[0]];
     psdp.utnnz[1][psdp.utsize] = psdp.ele.bij[0][plist[0]];
     psdp.utnnz[2][psdp.utsize] = 1;
-    
-    
     
     for(int i=1;i<nonobj_size;i++){
         if(psdp.ele.sup.pnz[0][plist[i]] == psdp.ele.sup.pnz[0][plist[i-1]]){
@@ -493,17 +456,11 @@ void count_upper_nnz(vector<int> plist, class mysdp & psdp){
             psdp.utnnz[2][psdp.utsize] = 1;
         }
     }
-    
     psdp.utsize ++;
-    
-    //cout<<" <--- count_upper_nnz <*** "<<endl<<endl;
-    
 }
 sup_a_block::sup_a_block(){
-    
     //this->vap0 = NULL;
     //this->vap1 = NULL;
-    
 }
 sup_a_block::~sup_a_block(){
     this->vap0.clear();
@@ -533,9 +490,7 @@ void sup_a_block::input(class mysdp & psdp, int i){
         this->vap1[k] = psdp.ele.sup.vap[1][k+psdp.ele.sup.pnz[0][i]];
         //		cout<<" "<<this->vap1[k];
         this->deg += this->vap1[k];
-    }
-    //	cout<<endl;
-    
+    }    
 }
 void sup_a_block::input(class spvec_array & supset, int i){
     
@@ -561,43 +516,7 @@ void sup_a_block::input(class spvec_array & supset, int i){
     //	cout<<endl;
     
 }
-/*
-bool comp_sup_spvecs(class sup & sup1, class sup & sup2){
-   return (sup1 < sup2); 
-    const int sup1_nnz = sup1.nnz();
-    const int sup2_nnz = sup2.nnz();
-    if(sup2_nnz == 0){
-        return false;
-    }else if(sup1_nnz == 0){
-        return true;
-    }else{
-        const int sup1_deg = sup1.deg();
-        const int sup2_deg = sup2.deg();
-        if(sup1_deg == sup2_deg){
-            int t = 0;
-            int min_nnz = sup1_nnz;
-            if(min_nnz > sup2_nnz){
-                min_nnz = sup2_nnz;
-            }
-            while(t < min_nnz){
-                if(sup2.idx[t] == sup1.idx[t]){
-                    if(sup2.val[t] == sup1.val[t]){
-                        t++;
-                    }else{
-                        return (sup2.val[t] < sup1.val[t]);
-                    }
-                }else{
-                    return (sup2.idx[t] > sup1.idx[t]);
-                }
-            }
-            return (sup1_nnz < sup2_nnz);
-        }else{
-            return (sup1_deg < sup2_deg);
-        }
-    }
-    return false;
-}
-*/
+
 void qsort_sups(vector<int> & slist, class spvec_array & spvecs){
     
     class supSet supsets;
@@ -633,8 +552,6 @@ void simplification(/*IN*/ class spvec_array & vecs){
         int a, b;
         int ma;
         bool flag;
-        
-        //cout << "after sorting" << endl;
         
         while(s<ssize){
             flag = true;
@@ -730,8 +647,6 @@ void get_removelist(/*IN*/ int * alist, class spvec_array & allsups, class spvec
     
 }	
 void remove_Binarysups(class mysdp & psdp, vector<int> binvec){
-	//cout<<"***> remove_Binarysups ( for psdp) ---> "<<endl;
-	//psdp.disp();
 	int sval, bidx, spidx, j, idx;
 	int bsize = binvec.size();
 	for(bidx=0;bidx<bsize;bidx++){
@@ -747,19 +662,14 @@ void remove_Binarysups(class mysdp & psdp, vector<int> binvec){
 			}
 		}
 	}
-	//psdp.disp();
-	//cout<<"<--- remove_Binarysups ( for psdp) <*** "<<endl;
 }
 void remove_SquareOnesups(class mysdp & psdp, vector<int> Sqvec){
-	//cout<<"***> remove_SquareOnesups ( for psdp) ---> "<<endl;
-	//psdp.disp();
 	class supSet supsets,tmpsupSet;
 	class sup tmpsup;
 	initialize_supset(psdp.ele.sup, supsets);
 	psdp.ele.sup.clean();
 	list<class sup>::iterator ite;
 	vector<int> idx, val;	
-
 
 	for(ite = supsets.begin(); ite != supsets.end(); ++ite){
 		(*ite).getIdxsVals(idx, val);
@@ -781,8 +691,6 @@ void remove_SquareOnesups(class mysdp & psdp, vector<int> Sqvec){
 	}
 	//tmpsupSet.unique();
 	initialize_spvecs(tmpsupSet, psdp.ele.sup);	
-	//psdp.disp();
-	//cout<<"<--- remove_SquareOnesups ( for psdp) <*** "<<endl;
 }
 void remove_sups(class mysdp & psdp, class spvec_array & removesups){
     //cout<<"***> remove_sups ( for psdp) ---> "<<endl;
@@ -873,11 +781,7 @@ void remove_sups(class mysdp & psdp, class spvec_array & removesups){
             psdp.bLOCKsTruct[noblock] = temp2 -1 ;
         }
         
-        //3.arrange no. of row and column
-        //int loss = 0;	//<---defference of no. of row and col.
-        //int nodiag = 1;	//<---no. of diagonal elements
-        //int idum = movesize;
-        
+        //3.arrange no. of row and column        
         psdp.block_info[0][noblock] -= movesize;
         temp = psdp.ele.bij[1][firstIdx];
         //2-1.reassign no. of row and col.
@@ -908,30 +812,6 @@ void remove_sups(class mysdp & psdp, class spvec_array & removesups){
     //cout<<"<--- remove_sups ( for psdp) <*** "<<endl<<endl;
 }
 void remove_Binarysups(vector<int> binvec, class spvec_array & allsups){
-	//allsups.disp();	
-	/*
-	cout << "allsups.vap" << endl;
-	for(int i=0; i<allsups.vap_size; i++){
-		cout << "(" << allsups.vap[0][i] << ", " << allsups.vap[1][i] << ")" << endl; 
-	}
-	cout << "allsups.pnz" << endl;
-	for(int i=0; i<allsups.pnz_size; i++){
-		cout << "(" << allsups.pnz[0][i] << ", " << allsups.pnz[1][i] << ")" << endl; 
-	}
-	*/
-	//cout<<" ***> remove_Binarysups ---> "<<endl;
-	/*
-	int sval, bidx, sidx;
-	int bsize = binvec.size();
-	for(bidx=0;bidx<bsize;bidx++){
-		for(sidx=0;sidx<allsups.vap_size;sidx++){
-			sval = allsups.vap[1][sidx];
-			if(sval > 1 && allsups.vap[0][sidx] == bidx){
-				allsups.vap[1][sidx] = 1;
-			}
-		}
-	}
-	*/
 	int sval, bidx, spidx, j, idx;
 	int bsize = binvec.size();
 	for(bidx=0;bidx<bsize;bidx++){
@@ -959,7 +839,6 @@ void remove_Binarysups(vector<int> binvec, class spvec_array & allsups){
 	}
 	allsups.pnz_size = ridx;
 	simplification(allsups);
-	//cout<<" <--- remove_Binarysups <*** "<<endl<<endl;
 }
 void remove_SquareOnesups(vector<int> Sqvec, class spvec_array & allsups){
 	//cout<<" ***> remove_SquareOnesups ---> "<<endl;
@@ -969,7 +848,6 @@ void remove_SquareOnesups(vector<int> Sqvec, class spvec_array & allsups){
 	allsups.clean();
 	list<class sup>::iterator ite;
 	vector<int> idx, val;	
-
 
 	for(ite = supsets.begin(); ite != supsets.end(); ++ite){
 		(*ite).getIdxsVals(idx, val);
@@ -991,23 +869,6 @@ void remove_SquareOnesups(vector<int> Sqvec, class spvec_array & allsups){
 	}
 	tmpsupSet.unique();
 	initialize_spvecs(tmpsupSet, allsups);	
-	
-	/*
-	allsups.disp();
-	cout << "allsups.pnz_size = " << allsups.pnz_size << endl;
-	cout << "allsups.pnz = " << endl;
-	for(int i=0; i<allsups.pnz[0].size(); i++){
-		cout << allsups.pnz[0][i] << ", " << allsups.pnz[1][i] << endl;
-	}
-	cout << endl;
-	cout << "allsups.vap_size = " << allsups.vap_size << endl;
-	cout << "allsups.vap = " << endl;
-	for(int i=0; i<allsups.vap[0].size(); i++){
-		cout << allsups.vap[0][i] << ", " << allsups.vap[1][i] << endl;
-	}
-	cout << endl;
-	*/
-	//cout<<" <--- remove_SquareOnesups <*** "<<endl<<endl;
 }
 void remove_sups(class spvec_array & removesups, class spvec_array & sups){
     //cout<<" ***> remove_sups( for spvecarray ) ---> "<<endl;
@@ -1060,26 +921,17 @@ void remove_sups(class spvec_array & removesups, class spvec_array & sups){
         }
     }
     sups.pnz_size = rp;
-    
-    //cout<<" <--- remove_sups( for spvecarray ) <*** "<<endl<<endl;
 }
 
 void s3r::set_relaxOrder(int Order){
-    
-    //cout<<" ***>s3r::set_relaxOrder ---> "<<endl;
-    
     //find max degree
     int minOrder=(int)ceil((double)(this->Polysys.maxDeg())/2.0);
-    
     if(Order<minOrder){
         this->param.relax_Order=minOrder;
     }
     else{
         param.relax_Order=Order;
     }
-    
-    //cout<<" <--- s3r::set_relaxOrder <*** "<<endl<<endl;
-    
 }
 
 void gen_basisindices(
@@ -1087,23 +939,6 @@ void gen_basisindices(
         class polysystem & polysys,
         class cliques & maxcliques,
         vector<list<int> > & BasisIndices) {
-	
-	/*
-	printf("numcliques = %2d\n", maxcliques.numcliques);
-	printf("numnode    = %2d\n", maxcliques.numnode);
-	for(int i=0; i<maxcliques.clique.size(); i++){
-		printf("clique %2d = ", i);
-		for(list<int>::iterator lit=maxcliques.clique[i].begin();lit!=maxcliques.clique[i].end();++lit){
-			printf("%2d ", (*lit));
-		}
-		printf("\n");
-	}
-	printf("\n");
-     	*/
-    //vector<double> cpuTime(10);
-    //cpuTime.resize(10,0);
-    //cout<<" ***>s3r::genBasicIndices ---> "<<endl;
-    
     int nDim=polysys.dimvar();
     int rowSize=polysys.numsys();
     
@@ -1128,14 +963,6 @@ void gen_basisindices(
             varList.clear();
             candidates.clear();
             polysys.sumSupports(i, varList);
-		
-		/*	
-			cout << "varList" << endl;			
-			for(list<int>::iterator vit=varList.begin();vit!=varList.end(); ++vit){
-				cout << (*vit) << " ";
-			}
-			cout << endl;
-		*/
             //double t1,t2,t3,t4;
             //t1 = (double)clock();
             for(int j=0;j<nClique;j++){
@@ -1146,14 +973,6 @@ void gen_basisindices(
                 if(flag){
                     candidates.push_back(j);
                 }
-				/*
-				cout << "maxcliques.clique["<< j << "]" << endl;			
-				for(list<int>::iterator vit=maxcliques.clique[j].begin();vit!=maxcliques.clique[j].end(); ++vit){
-					cout << (*vit) << " ";
-				}
-				cout << endl;
-				cout << "flag = " << flag << endl;
-				*/
             }
             //t2 = (double)clock();
             //cpuTime[3] = cpuTime[3] + (t2-t1);
@@ -1198,16 +1017,9 @@ void gen_basisindices(
         //cpuTime[5] = s2 -s1;
         //cpuTime[2] = (double)clock();
     }
-    /*
-     * printf("cpu time Part1 = %f\n",(cpuTime[1]-cpuTime[0])/(double)CLOCKS_PER_SEC);
-     * printf("cpu time Part2 = %f\n",(cpuTime[2]-cpuTime[1])/(double)CLOCKS_PER_SEC);
-     * printf("cpu time for 1 = %f\n",(cpuTime[3])/(double)CLOCKS_PER_SEC);
-     * printf("cpu time for 2 = %f\n",(cpuTime[4])/(double)CLOCKS_PER_SEC);
-     * printf("cpu time for 3 = %f\n",(cpuTime[5])/(double)CLOCKS_PER_SEC);
-     */
 }
+
 void s3r::write_pop(int ell, string fname){
-    
     std::ofstream fout;
     fout.open(fname.c_str(), ios::app);
     if(fout.fail()){
@@ -1388,7 +1200,6 @@ void s3r::write_BasisSupports(int i, string fname, class supsetSet & bSup){
         sup = bSup.supsetArray[i];
         sup.out_full(i, fname);
     }
-    
     fout << endl;
     fout.close();
 }
@@ -1424,9 +1235,6 @@ void s3r::write_BasisIndices(string fname){
 
 //genBasisSupports
 void s3r::genBasisSupports(class supsetSet & BasisSupports){
-    
-    //cout<<" ***>s3r::genBasisSupports ---> "<<endl;
-    
     int i;
     int rowSize=bindices.size();
     int nDim=this->Polysys.dimvar();
@@ -1438,17 +1246,9 @@ void s3r::genBasisSupports(class supsetSet & BasisSupports){
     BasisSupports.push(Moment);
     for(i=1;i<rowSize;i++){
         nVars=0;
-        /*
-         * for(list<int>::iterator vit =o2n_pattern.begin(); vit != o2n_pattern.end(); ++vit){
-         * printf("%2d ", (*vit));
-         * }
-         * printf("\n");
-         */
-        //nVars = o2n_pattern.size();
         nVars = bindices[i].size();
         List.clear();
         if(i<this->Polysys.numsys()){
-            
             sosDim=this->param.relax_Order-(int)ceil((double)(this->Polysys.polyDegree(i))/2.0);
             if(this->Polysys.polyTypeCone(i)==EQU){
                 //cout<<"Equality constraints "<<i<<" sosDim="<<sosDim<<endl;
@@ -1468,8 +1268,6 @@ void s3r::genBasisSupports(class supsetSet & BasisSupports){
         Moment.changeIndicesAll(bindices[i]);
         BasisSupports.push(Moment);
     }
-    
-    //cout<<" <--- s3r::genBasisSupports <*** "<<endl<<endl;
 }
 
 void s3r::eraseBinaryInObj(vector<int> binvec){
@@ -1478,12 +1276,7 @@ void s3r::eraseBinaryInObj(vector<int> binvec){
 	list<mono>::iterator eite = Polysys.polynomial[0].monoList.end();
 	list<mono>::iterator ite;
 	class poly objPoly;
-	/*
-	for(int i=0; i<binvec.size();i++){
-		cout << binvec[i] << " ";
-	}
-	cout << endl;
-	*/
+
 	for(ite = bite; ite!= eite; ++ite){
 		class sup sup;
 		(*ite).getSup(sup);
@@ -1503,10 +1296,6 @@ void s3r::eraseBinaryInObj(vector<int> binvec){
 		for(int i=0; i<(*ite).Coef.size(); i++){
 			newMono.setCoef((*ite).getCoef(i),i);
 		}
-		/*
-		double value = (*ite).getCoef(k);
-		cout << "value= " << value << endl;
-		*/
 		//newMono.writeMono();
 		objPoly.addMono(newMono);	
 		newMono.clear();
@@ -1518,8 +1307,8 @@ void s3r::eraseBinaryInObj(vector<int> binvec){
 	Polysys.polynomial[0].clear();
 	Polysys.polynomial[0] = objPoly;	
 	Polysys.layawayObjConst();
-	//cout<<" <--- s3r::eraseBinaryInObj <*** "<<endl<<endl;
 }
+
 void s3r::eraseSquareOneInObj(vector<int> Sqvec){
 	list<mono>::iterator bite = Polysys.polynomial[0].monoList.begin();
 	list<mono>::iterator eite = Polysys.polynomial[0].monoList.end();
@@ -1605,7 +1394,6 @@ void s3r::eraseBinarySups(vector<int> binvec, vector<class supSet> & BsupArray){
 		}
 		flag2 = false;
 	}
-	//cout<<" <--- s3r::eraseBinarySups <*** "<<endl<<endl;
 }
 void s3r::eraseSquareOneSups(vector<int> Sqvec, vector<class supSet> & BsupArray){
 	//cout<<" ***> s3r::eraseSquareOneSups ---> "<<endl;
@@ -1657,8 +1445,6 @@ void s3r::eraseSquareOneSups(vector<int> Sqvec, vector<class supSet> & BsupArray
 		}
 		flag2 = false;
 	}
-    
-	//cout<<" <--- s3r::eraseSquareOneSups <*** "<<endl<<endl;
 }
 //Delete unnecessarry supports by exploiting complimentarity constraints.
 void s3r::eraseCompZeroSups(class supSet & czSups, vector<class supSet> & BaSups) {
@@ -1704,8 +1490,6 @@ void s3r::eraseCompZeroSups(class supSet & czSups, vector<class supSet> & BaSups
         }
         czIte++;
     }
-    
-    //cout<<" <--- s3r::eraseCompZeroSups <*** "<<endl<<endl;
 }
 
 void Div2(class sup & sup1){
@@ -1987,25 +1771,9 @@ void count_lexall_num_a_nnz(/*IN*/int dimvar, int deg, /*OUT*/int & num, int & n
     
 }
 void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<class poly_info> & polyinfo_st, vector<class bass_info> & bassinfo_st, class spvec_array & allsups){
-    
-    //cout<<" ***> get_allsups ---> "<<endl;
-    
+
     allsups.dim = dim;
     if(stsize > 0){
-	/*
-        vector<class Vec3> InfoTable(stsize);
-        for(int i=0; i<stsize; i++){
-            //InfoTable[i].clear();
-            //InfoTable[i].resize(3, 0);
-            //InfoTable[i].vec[0] = polyinfo_st[i].typeCone;
-            //InfoTable[i].vec[1] = bassinfo_st[i].dim;
-            //InfoTable[i].vec[2] = bassinfo_st[i].deg;
-            InfoTable[i].typeCone = polyinfo_st[i].typeCone;
-            InfoTable[i].dim      = bassinfo_st[i].dim;
-            InfoTable[i].deg      = bassinfo_st[i].deg;
-            InfoTable[i].no       = i;
-        }
-        */
 	
 	vector<Vec3*> InfoTable;
         for(int i=0; i<stsize; i++){
@@ -2019,7 +1787,6 @@ void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<cla
 		InfoTable[i]->no = i;
 	}
 	sort(InfoTable.begin(), InfoTable.end(), Vec3::compare);	
-
         
         vector<int> stand(3);
         vector<int> infolist(stsize);
@@ -2037,8 +1804,6 @@ void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<cla
         
         int k=0;
 	Vec3* cVec = InfoTable[0];
-//        while(k < stsize && InfoTable[infolist[k]].vec[0] == EQU){
-//        while(k < stsize && InfoTable[k].typeCone == EQU){
         while(k < stsize && cVec->typeCone == EQU){
             nzele += polyinfo_st[infolist[k]].sup.vap_size * bassinfo_st[infolist[k]].sup.pnz_size
                     + bassinfo_st[infolist[k]].sup.vap_size * polyinfo_st[infolist[k]].sup.pnz_size;
@@ -2048,10 +1813,7 @@ void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<cla
         }
         int bpsize, bvsize;
         while(k<stsize){
-            //count_lexall_num_a_nnz(InfoTable[infolist[k]].vec[1], 2*InfoTable[infolist[k]].vec[2], bpsize, bvsize);
-            //count_lexall_num_a_nnz(InfoTable[k].dim, 2*InfoTable[k].deg, bpsize, bvsize);
             count_lexall_num_a_nnz(cVec->dim, 2*cVec->deg, bpsize, bvsize);
-            
             nzele += polyinfo_st[infolist[k]].sup.vap_size * bpsize
                     + bvsize * polyinfo_st[infolist[k]].sup.pnz_size;
             numele += polyinfo_st[infolist[k]].sup.pnz_size * bpsize;
@@ -2069,8 +1831,6 @@ void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<cla
         k=0;
         class spvec_array minsups;
 		cVec = InfoTable[k];
-        //while(k < stsize && InfoTable[infolist[k]].vec[0] == EQU){
-        //while(k < stsize && InfoTable[k].typeCone == EQU){
 	while(k < stsize && cVec->typeCone == EQU){
 		minkovsum(polyinfo_st[infolist[k]].sup, bassinfo_st[infolist[k]].sup, minsups);
 		pushsups(minsups, allsups);
@@ -2086,66 +1846,30 @@ void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<cla
             //class spvec_array lexallsups;
             
             if(issame == false){
-                //genLexAll(InfoTable[infolist[k]].vec[1], 2*InfoTable[infolist[k]].vec[2], lexallsups);
-                //genLexAll(InfoTable[k].dim, 2*InfoTable[k].deg, lexallsups);
                 genLexAll(cVec->dim, 2*cVec->deg, lexallsups);
-                //for(int i=0;i<InfoTable[infolist[k]].vec[1];i++){
-                //for(int i=0;i<InfoTable[k].dim;i++){
                 for(int i=0;i<cVec->dim;i++){
                     onpattern[i] = bassinfo_st[infolist[k]].pattern[i];
                 }
             }
             else{
-                //for(int i=0;i<InfoTable[infolist[k]].vec[1];i++){
-                //for(int i=0;i<InfoTable[k].dim;i++){
                 for(int i=0;i<cVec->dim;i++){
                     onpattern[bassinfo_st[infolist[k-1]].pattern[i]] = bassinfo_st[infolist[k]].pattern[i];
                 }
             }
-            //cout << "lexallsups.vap_size = " << lexallsups.vap_size << endl;
-            //cout << "lexallsups.pnz_size = " << lexallsups.pnz_size << endl;
-            //lexallsups.disp();
             for(int i=0;i<lexallsups.vap_size;i++){
-                //printf("lexallsups.vap[0][%d] = %d\n", lexallsups.vap[0][i]);
-                //printf("onpattern[%d] = %d\n", lexallsups.vap[0][i], onpattern[lexallsups.vap[0][i]]);
                 lexallsups.vap[0][i] = onpattern[lexallsups.vap[0][i]];
             }
-            /*
-             * if(k == 2){
-             * cout << "onpattern = ";
-             * for(int i=0; i<dim; i++){
-             * cout << onpattern[i] << " ";
-             * }
-             * cout << endl;
-             * cout << "k      = " << k << endl;
-             * cout << "InfoTable.dim = " << InfoTable[k].dim << endl;
-             * cout << "InfoTable.deg = " << InfoTable[k].deg << endl;
-             * //cout << "InfoTable.vec[1] = " << InfoTable[infolist[k]].vec[1] << endl;
-             * //cout << "InfoTable.vec[2] = " << InfoTable[infolist[k]].vec[2] << endl;
-             * cout << "issame = " << issame << endl;
-             * lexallsups.disp();
-             * }
-             */
             minkovsum(polyinfo_st[infolist[k]].sup, lexallsups, minsups);
             pushsups(minsups, allsups);
-            
             k++;
-            
             if(k<stsize){
 		 cVec = InfoTable[k];
-                //if(InfoTable[infolist[k]].vec[1] == InfoTable[infolist[k-1]].vec[1]){
-                //if(InfoTable[k].dim == InfoTable[k-1].dim){
 		Vec3* dVec = InfoTable[k-1];
                 if(cVec->dim == dVec->dim){
-                    
-                    //if(InfoTable[infolist[k]].vec[2] == InfoTable[infolist[k-1]].vec[2]){
-                    //if(InfoTable[k].deg == InfoTable[k-1].deg){
                     if(cVec->deg == dVec->deg){
                         issame = true;
                     }else{
                         issame = false;
-                        //count_lexall_num_a_nnz(InfoTable[infolist[k]].vec[1], InfoTable[infolist[k]].vec[2], lexallsups.pnz_size, lexallsups.vap_size);
-                        //count_lexall_num_a_nnz(InfoTable[k].dim, InfoTable[k].deg, lexallsups.pnz_size, lexallsups.vap_size);
                         count_lexall_num_a_nnz(cVec->dim, cVec->deg, lexallsups.pnz_size, lexallsups.vap_size);
                     }
                 }
@@ -2174,45 +1898,7 @@ void get_allsups(int dim, class poly_info & polyinfo_obj, int stsize, vector<cla
         //get all supports of objective function
         pushsups(polyinfo_obj.sup, allsups);
     }
-    
-    //allsups.clean();
-    //cout<<" <--- get_allsups <*** "<<endl;
 }
-/*
-bool comp_InfoTable(class Vec3 vec1, class Vec3 vec2){
-    if(vec1.typeCone == EQU){
-        if(vec2.typeCone != EQU){
-            return true;
-        }
-        return false;
-    }else if(vec2.typeCone == EQU){
-        return false;
-    }else{
-        if(vec1.dim < vec2.dim){
-            return true;
-        }else if(vec1.dim > vec2.dim){
-            return false;
-        }else{
-            if(vec1.deg > vec2.deg){
-                return true;
-            }
-            return false;
-        }
-    }
-    
-}
-void sortInfoTable(vector<class Vec3> & InfoTable, vector<int> & infolist){
-    //vector<class Vec3> temp(InfoTable.size());
-    //copy(InfoTable.begin(), InfoTable.end(), temp.begin());
-    //sort(temp.begin(), temp.end(), comp_InfoTable);
-    sort(InfoTable.begin(), InfoTable.end(), comp_InfoTable);
-    for(int i=0; i<infolist.size(); i++){
-        //infolist[i] = temp[i].no;
-        infolist[i] = InfoTable[i].no;
-    }
-    //temp.clear();
-}
-*/
 
 void genLexFixDeg(int k, int n, int W, vector<vector<int> > sup, int nnz, class spvec_array & rsups){
     int d;
@@ -2247,7 +1933,6 @@ void genLexFixDeg(int k, int n, int W, vector<vector<int> > sup, int nnz, class 
 void genLexAll(int totalOfVars, int Deg, class spvec_array & rsups){
     
     int nnz = 0;
-    
     vector<vector<int> > sup(2);
     sup[0].clear();
     sup[1].clear();
@@ -2271,12 +1956,10 @@ void genLexAll(int totalOfVars, int Deg, class spvec_array & rsups){
             }
         }
     }
-    //rsups.disp();
 }
 
 //int get_binarySup(class polysystem & polysys, class spvec_array &removesups){
 void get_binarySup(class polysystem & polysys, vector<int> & binvec){
-	//cout<<" ***> get_binarySup ---> "<<endl;
 	int size=polysys.numsys();
 	int idx;
 	for(int i=1;i<size;i++){
@@ -2287,7 +1970,6 @@ void get_binarySup(class polysystem & polysys, vector<int> & binvec){
 			polysys.removeIdx.push_back(i);
 		}
 	}
-	//cout<<" <--- get_binarySup <*** "<<endl;
 }
 //int get_SquareOneSup(class polysystem & polysys, class spvec_array & removesups){
 void get_SquareOneSup(class polysystem & polysys, vector<int> & Sqvec){
@@ -2301,11 +1983,8 @@ void get_SquareOneSup(class polysystem & polysys, vector<int> & Sqvec){
 			polysys.removeIdx.push_back(i);
 		}
 	}
-	//cout<<" <--- get_SquareOneSup <*** "<<endl;
 }
 void get_removesups(class polysystem & polysys, class spvec_array & removesups){
-	//cout<<" ***> get_removesups ---> "<<endl;
-
 	list<class sup> czlist;
 	int size=polysys.numsys();
 	for(int i=1;i<size;i++){
@@ -2322,13 +2001,10 @@ void get_removesups(class polysystem & polysys, class spvec_array & removesups){
 	removesups.dim = polysys.dimVar;
 	initialize_spvecs(czlist, removesups);
 	simplification(removesups);
-
-	//cout<<" <--- get_removesups <*** "<<endl;
 }
 void get_allsups_in_momentmatrix(int dimvar, int mmsize, vector<class bass_info> & bassinfo_mm, class spvec_array & mmsups){
     
     mmsups.dim = dimvar;
-    
     int num = 0;
     int nnz = 0;
 	for(int i=0;i<mmsize;i++){;
@@ -2348,6 +2024,7 @@ void get_allsups_in_momentmatrix(int dimvar, int mmsize, vector<class bass_info>
     lexallsups.del();
     simplification(mmsups);
 }
+
 void get_momentmatrix_basups(class polysystem & polysys, vector<list<int> > BaIndices, vector<class supSet> & basups, vector<class bass_info> & bassinfo_mm) {
     int bdim;
     list<int>::iterator lit;
@@ -2374,50 +2051,9 @@ void get_poly_a_bass_info(
         const int mat_size,
         /* OUT */ vector<class poly_info> & polyinfo, vector<class spvec_array> & bassinfo){
     
-    //cout<<" ***> set_mat_info_data ---> "<<endl;
-    
     int no_poly = 0;
-   
-	/*
-    initialize_polyinfo(polysys, 0, polyinfo[no_poly]);
-    no_poly++;
-    int mmsize=mmBaSupVect.size();
-    for(int i=0;i<mmsize;i++){
-        if(mmBaSupVect[i].size() == 1){
-            //polyinfo[no_poly].typeCone = -999;
-            polyinfo[no_poly].typeCone = INE;
-            initialize_spvecs(mmBaSupVect[i], bassinfo[no_poly]);
-            no_poly++;
-        }else if(mmBaSupVect[i].size() > 1){
-            polyinfo[no_poly].typeCone = -999;
-            initialize_spvecs(mmBaSupVect[i], bassinfo[no_poly]);
-            no_poly++;
-        }
-
-    }
-    for(int i=1;i<polysys.numsys();i++){
-        if(polysys.polyTypeCone(i)==EQU){
-            initialize_polyinfo(polysys, i, polyinfo[no_poly]);
-            initialize_spvecs(BaSupVect[i], bassinfo[no_poly]);
-            no_poly++;
-        }else if(polysys.polyTypeCone(i)==INE && BaSupVect[i].size()==1){
-            initialize_polyinfo(polysys, i, polyinfo[no_poly]);
-            initialize_spvecs(BaSupVect[i], bassinfo[no_poly]);
-            no_poly++;
-	}else if(polysys.polyTypeCone(i)==INE && BaSupVect[i].size()>1){
-            initialize_polyinfo(polysys, i, polyinfo[no_poly]);
-            initialize_spvecs(BaSupVect[i], bassinfo[no_poly]);
-            no_poly++;
-        }else if(polysys.polyTypeCone(i)==SDP){
-            initialize_polyinfo(polysys, i, polyinfo[no_poly]);
-            initialize_spvecs(BaSupVect[i], bassinfo[no_poly]);
-            no_poly++;
-        }
-    }
-	*/
  
     initialize_polyinfo(polysys, 0, polyinfo[no_poly]);
-    //	cout << "0 no_poly = " << no_poly << endl;
     no_poly++;
     for(int i=1;i<polysys.numsys();i++){
         if(polysys.polyTypeCone(i)==EQU){
@@ -2426,20 +2062,13 @@ void get_poly_a_bass_info(
             no_poly++;
         }
     }
-    //cout << "1 no_poly = " << no_poly << endl;
     for(int i=1;i<polysys.numsys();i++){
         if(polysys.polyTypeCone(i)==INE && BaSupVect[i].size()==1){
-            //cout << "***0***" << endl;
             initialize_polyinfo(polysys, i, polyinfo[no_poly]);
-            
-            //cout << "***1***" << endl;
             initialize_spvecs(BaSupVect[i], bassinfo[no_poly]);
-            
-            //cout << "***2***" << endl;
             no_poly++;
         }
     }
-    //cout << "2 no_poly = " << no_poly << endl;
     int mmsize=mmBaSupVect.size();
     for(int i=0;i<mmsize;i++){
         if(mmBaSupVect[i].size() == 1){
@@ -2455,7 +2084,6 @@ void get_poly_a_bass_info(
             no_poly++;
         }
     }
-    //cout << "4 no_poly = " << no_poly << endl;
     for(int i=1;i<polysys.numsys();i++){
         if(polysys.polyTypeCone(i)==INE && BaSupVect[i].size()>1){
             initialize_polyinfo(polysys, i, polyinfo[no_poly]);
@@ -2463,7 +2091,6 @@ void get_poly_a_bass_info(
             no_poly++;
         }
     }
-    //cout << "5 no_poly = " << no_poly << endl;
     for(int i=1;i<polysys.numsys();i++){
         if(polysys.polyTypeCone(i)==SDP){
             initialize_polyinfo(polysys, i, polyinfo[no_poly]);
@@ -2471,7 +2098,6 @@ void get_poly_a_bass_info(
             no_poly++;
         }
     }
-    //cout<<" <--- set_mat_info_data <*** "<<endl<<endl;
 }
 
 void initialize_spvecs(/*IN*/class supSet & supset, /*OUT*/class spvec_array & spvecs){
@@ -2507,27 +2133,23 @@ void initialize_spvecs(/*IN*/class supSet & supset, /*OUT*/class spvec_array & s
                 vars.push_back(Idx[j]);
             }
         }
-        
         ++ite;
     }
     vars.unique();
     spvecs.dim2 = vars.size();
-    
 }
+
 void initialize_spvecs(/*IN*/list<class sup> & suplist, /*OUT*/class spvec_array & spvecs){
     
     int size1 = suplist.size();
     int size2=0;
-    
     list<class sup>::iterator ite = suplist.begin();
     for(int i=0;i<size1;i++){
         size2 += (*ite).nnz();
         ++ite;
     }
-    
     spvecs.alloc(size1, size2);
     spvecs.pnz_size = size1;
-    
     ite = suplist.begin();
     spvecs.vap_size=0;
     vector<int> Idx, Val;
@@ -2553,12 +2175,10 @@ void initialize_spvecs(/*IN*/list<class sup> & suplist, /*OUT*/class spvec_array
         }
         
         ++ite;
-    }
-    //spvecs.disp();
-    
+    }    
 }
+
 void initialize_polyinfo(/*IN*/class polysystem & polysys, int nop, /*OUT*/class poly_info & polyinfo){
-    
     //set typeCone, sizeCone and number of Monomials.
     polyinfo.typeCone = polysys.polynomial[nop].typeCone;
     polyinfo.sizeCone = polysys.polynomial[nop].sizeCone;
@@ -2578,7 +2198,6 @@ void initialize_polyinfo(/*IN*/class polysystem & polysys, int nop, /*OUT*/class
     }else{
         polyinfo.alloc_coef(polyinfo.typeCone, polyinfo.sizeCone, polyinfo.numMs, polysys.polyCoefNnz(nop));
     }
-    
     
     //set data of all coefficients
     list<class mono>::iterator ite = polysys.polynomial[nop].monoList.begin();
@@ -2600,24 +2219,18 @@ void initialize_polyinfo(/*IN*/class polysystem & polysys, int nop, /*OUT*/class
         }
     }
     else{
-        
         int idx = 0;
         int stidx, edidx;
         int matsize;
         
         for(int i=0;i<nummonos;i++){
-            
             Co.clear();
             (*ite).copyCoef(Co);
             matsize = i*polyinfo.sizeCone;
-            
             for(int j=0;j<polyinfo.sizeCone;j++){
-                
                 polyinfo.mc[matsize+j] = idx;
-                
                 stidx = j*polyinfo.sizeCone;
                 edidx = stidx + j + 1;
-                
                 for(int k= stidx; k < edidx ; k ++){
                     if(fabs(Co[k]) > 1.0e-8){
                         polyinfo.mr  [idx]    = k - stidx;
@@ -2629,19 +2242,15 @@ void initialize_polyinfo(/*IN*/class polysystem & polysys, int nop, /*OUT*/class
             ++ite;
         }
         polyinfo.mc[nummonos*polyinfo.sizeCone] = idx;
-	//polyinfo.disp();
     }
 }
 
 void rescale_sol(int dimvar, vector<double> & pMat, vector<double> & bVec, double * & sol){
-    
-    //cout<<" ***> rescale_sol ---> "<<endl;
     vector<double> yyy(dimvar);
     for(int i=0; i<dimvar; i++){
         yyy[i] = sol[i];
     }
-    
-    //x=A(y*)+b
+
     for(int i=0;i<dimvar;i++){
         sol[i]=0.0;
         for(int j=0;j<dimvar;j++){
@@ -2653,35 +2262,16 @@ void rescale_sol(int dimvar, vector<double> & pMat, vector<double> & bVec, doubl
             sol[i] -= bVec[i];///pMat[i*dimvar+i];
         }
     }
-    //cout<<" <--- rescale_sol <*** "<<endl<<endl;
-    
 }
 
 void write_sdpa(/*IN*/class mysdp & psdp, /*OUT*/ string sdpafile){
-    
-    //cout<<"[Write SDPAsparseformat data]"<<endl;
-    
-    //cout<<" ***> write_sdpa --->"<<endl;
-    /*
-     * std::ofstream fout;
-     * fout.open(sdpafile.c_str(), ios::out|ios::out );
-     * if( fout.fail() ){
-     * cout << "error@write_sdpa:file not open for output" << endl;
-     * cout << sdpafile;
-     * exit(EXIT_FAILURE);
-     * }
-     */
     FILE *fp;
     fp = fopen(sdpafile.c_str(), "w+");
     if(fp == NULL){
         printf("file open error\n");
         exit(EXIT_FAILURE);
     }
-    
-    ////psda.disp();
-    //int size = psdp.block_info[0][psdp.nBlocks-1]+psdp.block_info[1][psdp.nBlocks-1]-1;
-    //int size = psdp.block_info[1][psdp.nBlocks-1];
-    //int size = accumulate(psdp.block_info[1].begin()+1,psdp.block_info[1].end()-1,0);
+
     int size = 0;
     for(int i=1; i<psdp.nBlocks+1;i++){
         size = size + psdp.block_info[1][i];
@@ -2695,25 +2285,6 @@ void write_sdpa(/*IN*/class mysdp & psdp, /*OUT*/ string sdpafile){
 		return;
 	}
     
-    /*
-     * cout << "# Output : SDPA sparse format data"  << endl;
-     * cout << "  File name = "  << sdpafile  << endl;
-     * cout << "  mDim = " << psdp.mDim << " nBlock = " << psdp.nBlocks << endl;
-     * cout << "  size of bVect = 1 * "  << psdp.mDim << endl;
-     * cout << "  size of sparseMatrix = " << size << " * " << 5 << endl;
-     * fout << "* SDPA sparse format data"  << endl;
-     * fout << "* File name = "  << sdpafile  << endl;
-     * fout << "* mDim = " << psdp.mDim << " nBlock = " << psdp.nBlocks << endl;
-     * fout << "* size of bVect = 1 * "  << psdp.mDim  << endl;
-     * fout << "* size of sparseMatrix = " << size << " * " << 5 << endl;
-     */
-    /*
-     * mexPrintf("* SDPA sparse format data\n");
-     * mexPrintf("* File name = %s\n", sdpafile.c_str());
-     * mexPrintf("* mDim = %3d, nBlock = %2d\n",psdp.mDim,psdp.nBlocks);
-     * mexPrintf("* size of bVect = 1 * %3d\n",psdp.mDim);
-     * mexPrintf("* size of sparseMatrix = %4d * 5\n",size);
-     */
     printf("* SDPA sparse format data\n");
     printf("* File name = %s\n", sdpafile.c_str());
     printf("* mDim = %3d, nBlock = %2d\n", psdp.mDim, psdp.nBlocks);
@@ -2725,10 +2296,6 @@ void write_sdpa(/*IN*/class mysdp & psdp, /*OUT*/ string sdpafile){
     fprintf(fp, "* mDim = %3d, nBlock = %2d\n", psdp.mDim, psdp.nBlocks);
     fprintf(fp, "* size of bVect = 1 * %3d\n", psdp.mDim);
     fprintf(fp, "* size of sparseMatrix = %4d * 5\n", size);
-    /*
-     * fout<<psdp.mDim<<endl;
-     * fout<<psdp.nBlocks<<endl;
-     */
     fprintf(fp, "%3d\n", psdp.mDim);
     fprintf(fp, "%3d\n", psdp.nBlocks);
     
@@ -2755,16 +2322,7 @@ void write_sdpa(/*IN*/class mysdp & psdp, /*OUT*/ string sdpafile){
     //fout<<endl;
     
     for(int i=1;i<psdp.nBlocks+1;i++){
-        for(int j=psdp.block_info[0][i];j<psdp.block_info[0][i]+psdp.block_info[1][i];j++){
-            /*
-                fout<<psdp.ele.sup.pnz[0][j]<<" ";
-                fout<<psdp.ele.bij[0][j]<<" ";
-                fout<<psdp.ele.bij[1][j]<<" ";
-                fout<<psdp.ele.bij[2][j]<<" ";
-                fout<<psdp.ele.coef[j]<<" ";
-                fout<<endl;
-             */
-            
+        for(int j=psdp.block_info[0][i];j<psdp.block_info[0][i]+psdp.block_info[1][i];j++){            
             fprintf(fp, "%3d ", psdp.ele.sup.pnz[0][j]);
             fprintf(fp, "%3d ", psdp.ele.bij[0][j]);
             fprintf(fp, "%3d ", psdp.ele.bij[1][j]);
@@ -2773,11 +2331,6 @@ void write_sdpa(/*IN*/class mysdp & psdp, /*OUT*/ string sdpafile){
         }
     }
     fclose(fp);
-    //fout.close();
-    
-    //cout<<"OK"<<endl;
-    
-    //cout<<" <--- write_sdpa <***"<<endl<<endl;
 }
 
 void perturb_objective(class poly & objpoly, int dimvar, double eps){
@@ -2820,21 +2373,8 @@ void conversion_part1(
         //double t1 = (double)clock();
         sr.Polysys.scalingPOP(permmatrix, bvect, scalevalue, sr.param.symbolicMath);
         slen = scalevalue.size();
-        //double t2 = (double)clock();
-        //printf("Scaling Time = %f\n",(t2-t1)/(double)CLOCKS_PER_SEC );
-        /*
-         * for(int i=0; i<sr.Polysys.dimvar(); i++){
-         * cout <<"lbd(" << i << ")   =" << sr.Polysys.bounds.lbd(i) << endl;
-         * cout <<"ubd(" << i << ")   =" << sr.Polysys.bounds.ubd(i) << endl;
-         * cout <<"Newlbd(" << i << ")=" << sr.Polysys.boundsNew.lbd(i) << endl;
-         * cout <<"Newubd(" << i << ")=" << sr.Polysys.boundsNew.ubd(i) << endl;
-         * }
-         */
     }
     else{
-        //set boudsNew.lbd and ubd bound.lbd and and ubd.
-        //sr.Polysys.boundsNew.allocUpLo(sr.Polysys.dimvar());
-        //cout << sr.Polysys.dimvar() << endl;
         int NumOfActiveBounds = 0;
         for(int i=0;i<sr.Polysys.dimvar();i++){
             sr.Polysys.boundsNew.setUp(i+1, sr.Polysys.bounds.ubd(i));
@@ -2845,12 +2385,6 @@ void conversion_part1(
             if(sr.Polysys.bounds.lbd(i) > MIN && sr.Polysys.bounds.lbd(i) < MAX){
                 NumOfActiveBounds++;
             }
-            /*
-             * cout <<"lbd(" << i << ")   =" << sr.Polysys.bounds.lbd(i) << endl;
-             * cout <<"ubd(" << i << ")   =" << sr.Polysys.bounds.ubd(i) << endl;
-             * cout <<"Newlbd(" << i << ")=" << sr.Polysys.boundsNew.lbd(i) << endl;
-             * cout <<"Newubd(" << i << ")=" << sr.Polysys.boundsNew.ubd(i) << endl;
-             */
         }
         //add upper and lower bounds as constraints to constraints system
         int numSys = sr.Polysys.numSys;
@@ -2881,9 +2415,7 @@ void conversion_part1(
     }
     
     sr.timedata1[3] = (double)clock();
-    //cout << "***Start of after scaling" << endl;
-    //system("top -b -n 1 | grep MATLAB | head -1 |awk '{printf(\"memory = %s\\n\"), $6}' ");
-    
+
     //get data of objective function' constant
     objconst = sr.Polysys.objConst;
     sr.timedata1[4] = (double)clock();
@@ -2938,10 +2470,10 @@ void conversion_part2(
     
 	int val = 0;
     sr.timedata[0] = (double)clock();
-    //cout << "0 " << sr.timedata[0]/(double)CLOCKS_PER_SEC << endl;
 	val = getmem();
     
-    //generate max cliques
+    // Generate max cliques
+    // These will be used to find variable sets with running intersection property
     if(sr.param.sparseSW == 0){
         sr.maxcliques.initialize(sr.Polysys.dimVar, 1);
         for(int i=0;i<sr.Polysys.dimVar ;i++){
@@ -2956,37 +2488,42 @@ void conversion_part2(
         sr.maxcliques.write_maxCliques(sr.param.detailedInfFile);
     }
     sr.timedata[1] = (double)clock();
-    //cout << "1 " << sr.timedata[1]/(double)CLOCKS_PER_SEC << endl;
 	val = getmem();
     
-    //generate basis indices.
+    // Generate basis indices to be stored in sr.bindices
+    // bindices[i] stores the variable indices that will be used in the moment matrix for the i-th constraint
+    // note this may include variables that are not present in the constraint itself, depending on the variable set chosen
+    // in dense mode:  use all variables
+    // in sparse mode: find smallest clique that contains all variables present
     gen_basisindices(sr.param.sparseSW, sr.param.multiCliquesFactor, sr.Polysys, sr.maxcliques, sr.bindices);
     
     if(sr.param.detailedInfFile.empty() == false){
         sr.write_BasisIndices(sr.param.detailedInfFile);
     }
     sr.timedata[2] = (double)clock();
-    //cout << "2 " << sr.timedata[2]/(double)CLOCKS_PER_SEC << endl;
 	val = getmem();
-    //cout << "2 " << sr.timedata[2] << endl;
     
-    //generate sets of basis supports
+    // Generate sets of basis supports
+    // takes the variable sets created by gen_basisindices and generates the monomial supports
+    // this is all combinations of monomials up to a certain degree
+    // these suppports are used to create the localizing and moment matrices
+    // BasisSupports.supsetArray is an array of supSet objects, with supsetArray[i] for constraint i
+    // Each supSet object holds a list of sup objects, each of which indicate a monomial by 
+    // by storing the index of the atoms involved and their respective exponents
     sr.genBasisSupports(BasisSupports);
     if(sr.param.detailedInfFile.empty() == false){
         sr.write_BasisSupports(0, sr.param.detailedInfFile, BasisSupports);
     }
     
-    //sr.dumsups = BasisSupports.supsetArray[1];
     sr.timedata[3] = (double)clock();
 	val = getmem();
-    //cout << "3 " << sr.timedata[3] << endl;
     
     //get polyinfo_obj( array data-type to have polynomial form data )
     initialize_polyinfo(sr.Polysys, 0, polyinfo_obj);
     sr.timedata[4] = (double)clock();
 	val = getmem();
-    //cout << "4 " << sr.timedata[4] << endl;
     
+    // Prepare for constraint processing
     stsize = sr.Polysys.numsys() -1 ;
     //generate all supports being consisted polynomial sdp without moment matrices
     vector<class poly_info> polyinfo_st;
@@ -2998,17 +2535,21 @@ void conversion_part2(
     }
     sr.timedata[5] = (double)clock();
 	val = getmem();
-    //cout << "5 " << sr.timedata[5] << endl;
+    // Create global set of supports, i.e. exhaustive set of monomials that can be referenced anywhere
+    // built by taking union of all monomials from the objective, constraints, and all basis supports
+    // these are stored in allsups_st
     get_allsups(sr.Polysys.dimvar(), polyinfo_obj, stsize, polyinfo_st, bassinfo_st, allsups_st);
     sr.timedata[6] = (double)clock();
 	val = getmem();
-    //cout << "6 " << sr.timedata[6] << endl;
 
+    // The monomials gathered by get_allsups are stored in a spvec_array, however we desire them to be sup objects
+    // this function will do that for us, adding each one to allSups
+    // allSups is now a supSet: a set of all monomials, each as a sup object.
+    // I believe allsups_st is not used again
     class supSet allSups;
     initialize_supset(allsups_st, allSups);
     sr.timedata[7] = (double)clock();
 	val = getmem();
-    //cout << "7 " << sr.timedata[7] << endl;
     
     //reduce each basis supports
     if(sr.param.reduceMomentMatSW == 1){
@@ -3019,7 +2560,8 @@ void conversion_part2(
     }
 	sr.timedata[8] = (double)clock();
 	val = getmem();
-	//cout << "8 " << sr.timedata[8] << endl;
+
+    // Filter Basis Supports for Redundancy // 
 	//eliminate supports of each basis supports, using special complementarity x*y=0
 	if(sr.param.complementaritySW==YES){
 		get_removesups(sr.Polysys, removesups);
@@ -3032,72 +2574,50 @@ void conversion_part2(
 	//eliminate supports of each basis supports, using  xi*(xi-1)=0
 	if(sr.param.binarySW==YES){
 		get_binarySup(sr.Polysys, binvec);
-		/*
-		cout << "binvec" << endl;
-		for(int i=0; i<binvec.size(); i++){
-			cout << binvec[i] << ", ";
-		}
-		cout << endl;
-		*/
 		if(binvec.empty() == false){
 			sr.eraseBinarySups(binvec, BasisSupports.supsetArray);
 			sr.eraseBinaryInObj(binvec);
 		}
-		//for(int i=0; i< BasisSupports.supsetArray.size();i++){
-		//	cout << "== " << i << "== "<<endl;
-		//	BasisSupports.supsetArray[i].disp();	
-		//}
 	}
 	//eliminate supports of each basis supports, using xi^2 -1=0
 	if(sr.param.SquareOneSW==YES){
 		get_SquareOneSup(sr.Polysys, Sqvec);
-		/*
-		cout << "Sqvec" << endl;
-		for(int i=0; i<Sqvec.size(); i++){
-			cout << Sqvec[i] << ", ";
-		}
-		cout << endl;
-		*/
 		if(Sqvec.empty() == false){
 			sr.eraseSquareOneSups(Sqvec, BasisSupports.supsetArray);
 			sr.eraseSquareOneInObj(Sqvec);
 		}
-		//for(int i=0; i< BasisSupports.supsetArray.size();i++){
-		//	cout << "== " << i << "== "<<endl;
-		//	BasisSupports.supsetArray[i].disp();	
-		//}
 	}
 	vector<int> remainIdx;
 	sr.Polysys.removeEQU(remainIdx);
-	//cout << "remainIdx" << endl;
-	//for(int i=0;i<remainIdx.size();i++){
-	//	cout << remainIdx[i] << endl;
-	//}	
-	//for(int i=0; i< BasisSupports.supsetArray.size();i++){
-	//		cout << "== " << i << "== "<<endl;
-	//		BasisSupports.supsetArray[i].disp();	
-	//	}
-	int num = sr.Polysys.removeIdx.size();
-	BasisSupports.removeEQU(num, remainIdx);	
-	//for(int i=0; i< BasisSupports.supsetArray.size();i++){
-	//	cout << "== " << i << "== "<<endl;
-	//	BasisSupports.supsetArray[i].disp();	
-	//}
+
+	int num = sr.Polysys.removeIdx.size(); // Analyze system of polynomials and determine which constraints can be eliminated
+	BasisSupports.removeEQU(num, remainIdx); // Remove basis supports of removed constraints
+
+    ///////////////////////////////////////
+    // ADD VARIABLE MULTIPLICATION HERE // 	
+    // ADD VARIABLE MULTIPLICATION HERE // 	
+    // ADD VARIABLE MULTIPLICATION HERE // 	
+    // After Basis Supports are created and Filtered //
+    // Before global support set and moment matrix generation //
+    // bindices: basis indices for each constraint //
+    // BasisSupports: basis supports for each constraint //
+    // sr.Polysys.dimVar: number of variables //
+    //////////////////////////////////////////
+
 	sr.timedata[9] = (double)clock();
 	val = getmem();
 	//cout << "9 " << sr.timedata[9] << endl;
     
+    // Prepare for moment matrix creation
 	mmsize = BasisSupports.supsetArray.size() - sr.Polysys.numsys();
 	vector<class bass_info> bassinfo_mm(mmsize);
 	get_momentmatrix_basups(sr.Polysys, sr.bindices, BasisSupports.supsetArray, bassinfo_mm);
 	sr.timedata[10] = (double)clock();
 	val = getmem();
-	//cout << "10 " << sr.timedata[10] << endl;
     
 	get_allsups_in_momentmatrix(sr.Polysys.dimvar(), mmsize, bassinfo_mm, mmsups);
 	sr.timedata[11] = (double)clock();
 	val = getmem();
-	//cout << "11 " << sr.timedata[11] << endl;
     
 	//generate all supports being consisted POP
 	allsups.alloc(allsups_st.pnz_size + mmsups.pnz_size,
@@ -3120,18 +2640,10 @@ void conversion_part2(
 		remove_sups(removesups, allsups);
 	}
 	if(sr.param.binarySW == YES  && binvec.empty() == false){
-		//cout << "Before" << endl;
-		//allsups.disp();
 		remove_Binarysups(binvec, allsups);
-		//cout << "After" << endl;
-		//allsups.disp();
 	}
 	if(sr.param.SquareOneSW == YES  && Sqvec.empty() == false){
-		//cout << "Before" << endl;
-		//allsups.disp();
 		remove_SquareOnesups(Sqvec, allsups);
-		//cout << "After" << endl;
-		//allsups.disp();
 	}
 	sr.timedata[13] = (double)clock();
 	val = getmem();
@@ -3162,22 +2674,18 @@ void conversion_part2(
 		sr.redundant_OneBounds(BasisSupports, allSups, OneSup);
 		sr.redundant_ZeroBounds(BasisSupports, allSups, ZeroSup);
 		sr.Polysys.addBoundToPOP(ZeroSup, OneSup, numofbds);
-		//cout << "numofbds = " << numofbds << endl;
 	}else if(sr.param.boundSW == 2 && !flag){
 		allSups.unique();
 		allSups.sort();
 		sr.Polysys.addBoundToPOP_simple(allSups, numofbds);
-		//cout << "numofbds = " << numofbds << endl;
 	}else if(sr.param.boundSW == 1 && !flag){
 		allSups.unique();
 		allSups.sort();
 		sr.Polysys.addBoundToPOP_simple(allSups, numofbds);
-		//cout << "numofbds = " << numofbds << endl;
 	}
 	sr.timedata[15] = (double)clock();
 	val = getmem();
 	//cout << "15 " << sr.timedata[15] << endl;
-    
     
 	mmsetSize=BasisSupports.supsetArray.size()-(sr.Polysys.numsys()-numofbds);
 	for(int i=0;i<mmsetSize;i++){
@@ -3232,20 +2740,13 @@ void conversion_part2(
 	}
     sr.timedata[19] = (double)clock();
 	val = getmem();
-    //cout << "19 " << sr.timedata[19] << endl;
-    
+
     //linearize polynomial sdp
     get_lsdp(allsups, sdpdata, sr.degOneTerms, sr.xIdxVec);
-    //sr.xIdxVec.disp();
-    //cout << "20 " << endl;
     
     //
     // 2009-06-09 Waki
     // Remove the function to write SDP as the sdpa sparse format
-    //
-    //if(sr.param.sdpaDataFile.empty() == false){
-    //    write_sdpa(/*IN*/sdpdata,/*OUT*/ sr.param.sdpaDataFile);
-    //}
     sr.timedata[20] = (double)clock();
 	val = getmem();
     //cout << "20 " << sr.timedata[20] << endl;
