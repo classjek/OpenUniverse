@@ -82,55 +82,65 @@ int main(){
     // }
 
     // Display constraints
-    std::cout << '\n' << "Printing all " << constraints.size() << " Constraints:" << std::endl;
+    std::cout << '\n' << "Printing All Constraints(" << constraints.size() << "):" << std::endl;
     for (const auto& c : constraints) {
-        std::cout << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
+        std::cout << "    " << c.poly.toString() << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n";
         //std::cout << c.poly.toStringWithMap(realMap) << " " << (c.cmp == Cmp::GE0 ? ">=" : "=") << " 0\n" << '\n';
     }
+    std::cout << '\n';
 
-    // Generate .gms constraint strings
+    ////////////////////////
+    // Generate .gms file //
+    ///////////////////////
     std::unordered_set<std::string> gmsConstraints;
     for (const auto& constraint : constraints){
         std::string gmsStr = constraint.poly.toStringWithMap(realMap);
         if (constraint.cmp == Cmp::GE0) {
-            gmsStr += " =g= 0 ;" ;
+            gmsStr += " =G= 0 ;" ;
         } else {
-            gmsStr += " =e= 0 ;";
+            gmsStr += " =E= 0 ;";
         }
         gmsConstraints.insert(gmsStr);
     }
-
-    std::cout << "===== .gms file =====" << std::endl;
-    // Variables Line
+    // Variables Line //
     std::string varLine = "Variables ";
     for (const auto& [sym, var] : realMap) {
         varLine += var + ", ";
     }
-    // Equation Line and Equations
+    // Equation Line and Equations //
     std::string eqLine = "Equations ";
     std::string eqs; 
+    // Add dummy obj function: objvar = 0
+    varLine += "objvar ;"; 
+    eqLine += "obj, ";
+    eqs += "obj.. objvar =E= 0 ;\n";
     int idx = 1; 
     for (const auto& gconstraint : gmsConstraints){
         eqLine += "c" + std::to_string(idx) + ", ";
         eqs += "c" + std::to_string(idx++) + ".. " + gconstraint + '\n';
-        //std::cout << "c" + std::to_string(idx++) + ".. " << gconstraint << '\n';
     }
-    std::cout << std::string_view(varLine.data(), varLine.size()-2) << " ;" << std::endl;
-    std::cout << std::string_view(eqLine.data(), eqLine.size()-2) << " ;" << std::endl;
-    std::cout << eqs << std::endl;
-
+    // add variable bounds //
+    std::string boundLine; 
+    int low = 0; 
+    int up = 1000;
+    for (const auto& [sym, var] : realMap) {
+        boundLine += var + ".lo = " + std::to_string(low) + " ; ";
+        boundLine += var + ".up = " + std::to_string(up) + " ;\n";
+    }
     // Write to .gms file
     std::ofstream out("problem.gms");
     if (!out) {
         std::cerr << "Error: cannot open output file\n";
         return 1;
     }
-    out << std::string_view(varLine.data(), varLine.size()-2) << " ;\n";
-    out << std::string_view(eqLine.data(), eqLine.size()-2) << " ;\n";
-    out << eqs;
+    out << varLine << std::endl;
+    out << std::string_view(eqLine.data(), eqLine.size()-2) << " ;\n" << std::endl;
+    out << eqs << std::endl;
+    out << boundLine << std::endl;
     
     out.close();
     std::cout << "Wrote problem.gms successfully" << std::endl;
+
 
     // Generate equivalence map
     // equiv_map = gen_equiv_map(constraints)
@@ -139,8 +149,6 @@ int main(){
     // need to make sure groundings take into account g_0 != g_1
     // another function to write this to a .gms file, keeping track of 
     // what monomials go to which variables 
-
-
 
     // fs::path parquet = fs::current_path() / "../data/yago3-10.parquet";
     // std::cout << "parquet path = " << parquet << '\n';
