@@ -228,6 +228,7 @@ void makeSDPr(class s3r &POP, class mysdp & sdpdata, class Info & info, string &
     int ndim = POP.Polysys.dimVar;
     fixedVar[0].resize(ndim, 0);
     fixedVar[1].resize(ndim, 10*MIN);
+
     deleteVar(POP.Polysys, fixedVar);
 	//POP.Polysys.writePolynomials();
     POP.degOneTerms.resize(POP.Polysys.dimVar, 0);
@@ -335,14 +336,9 @@ void makeSDPr(class s3r &POP, class mysdp & sdpdata, class Info & info, string &
     }
     
     /* allocate sdpdta */
-    //class mysdp sdpdata;
-    //cout << "conversion2 started. " << endl;
-    conversion_part2(POP, oriidx, extmat, sdpdata);
-    //POP.Polysys.writePolynomials();
-    //cout << "conversion2 finished. " << endl;
-    //printExt(extmat);
-    //POP.Polysys.writePolynomials();
-    //printDegOne(POP.degOneTerms);
+    // add fixedVar here so we cna acces information regarding which variables
+    // were transformed into which other variables during optimization process
+    conversion_part2(POP, fixedVar, oriidx, extmat, sdpdata);
 }
 
 

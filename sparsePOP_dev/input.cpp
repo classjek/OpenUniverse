@@ -501,27 +501,6 @@ void inputGMS(class polysystem & PolySys, string & fname){
 			cout << " ## Error: Some equations are not defined in input file. "<< endl;
 			exit(EXIT_FAILURE);
 		}
-		/* output result */
-		/*
-		cout << " varnum  = " << varnum << endl;
-		printStrVec(var);
-		cout << " pvarnum = " << pvarnum << endl;
-		printStrVec(pvar);
-		cout << " bvarnum = " << bvarnum << endl;
-		printStrVec(bvar);
-		cout << " consnum = " << consnum << endl;
-		printStrVec(cons);
-		cout << " objective function is " << objFunc << endl;
-		cout << " constraints " << objFunc << endl;
-		printStrVec(eq);
-		cout << " lower bounds " << endl;
-		printStrVec(lbd);
-		cout << " upper bounds " << endl;
-		printStrVec(ubd);
-		cout << " fixed bounds " << endl;
-		printStrVec(fix);
-		gms.close();
-		*/
 	}else{
 		cout << "Can not open file" << endl;
 	}
@@ -604,16 +583,6 @@ void inputGMS(class polysystem & PolySys, string & fname){
 
 	//set bounds
 	set_bounds(PolySys,varnum,var,pvar,lbd,ubd,fix);
-	
-
-	/* Output results */
-	/*
-	cout.precision(15);
-	PolySys.writePolynomials();
-	cout << PolySys.objConst << endl;
-	printStrVec(eq);
-	cout << "objFunc =" << objFunc << endl;
-	*/
 }
 
 void allocMono(class mono & Mono, int scale, vector<string> var,string str){

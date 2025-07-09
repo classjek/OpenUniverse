@@ -19,7 +19,9 @@
  *
  * ------------------------------------------------------------- */
 
+#include <iostream>
 #include "conversion.h"
+
 
 void s3r::redundant_OneBounds(class supsetSet & BasisSupports, class supSet & allSup, class supSet & OneSup){
     int nDim = Polysys.dimVar;
@@ -2446,6 +2448,7 @@ void conversion_part1(
 
 void conversion_part2(
         /*IN*/  class s3r & sr,
+        vector<vector<double>>& fixedVar,
         vector<int> & oriidx,
         class SparseMat & extofcsp,
         /*OUT*/ class mysdp & sdpdata) {
@@ -2545,7 +2548,6 @@ void conversion_part2(
     // The monomials gathered by get_allsups are stored in a spvec_array, however we desire them to be sup objects
     // this function will do that for us, adding each one to allSups
     // allSups is now a supSet: a set of all monomials, each as a sup object.
-    // I believe allsups_st is not used again
     class supSet allSups;
     initialize_supset(allsups_st, allSups);
     sr.timedata[7] = (double)clock();
@@ -2603,6 +2605,102 @@ void conversion_part2(
     // BasisSupports: basis supports for each constraint // 
     // sr.Polysys.dimVar: number of variables // 
     /////////////////////////////////////////// 
+    // Things that need updating // 
+    // dimvar: total number of variables, increment with each variable added
+    // allsups_st: Holds all monomials (supports) needed for the objective and constraints (before moment matrices).
+    //             After updating BasisSupports, you should regenerate allsups_st (by calling get_allsups) so that it includes all
+    //             monomials involving the new variables.
+    // BasisSupports: For each constraint/matrix, holds a set of monomials (supports) used as the basis for that part.
+    //                After updating bindices, you should regenerate BasisSupports (by calling genBasisSupports) 
+    //                so that it includes the new variables in the basis supports for each constraint/matrix.
+    // bindices: For each constraint and moment matrix, stores a list of variable indices that are used to build the basis for that part.
+    //           So when new constraints are added, we need to update the bindices accordingly.
+    // Polysys: Holds all polynomials, variable bounds, and system-wide information. Might be tricky 
+
+    // Print Variable Information 
+    // uh this is being sussy 
+    cout << "=== VARIABLE MAPPING ===" << endl;
+    cout << "fixedVar[0].size() = " << fixedVar[0].size() << endl;
+    cout << "fixedVar[1].size() = " << fixedVar[1].size() << endl;
+    cout << "Variable mapping:" << endl;
+    int eliminated = 0;
+    for (int i = 0; i < fixedVar[0].size(); i++) {
+        if (fixedVar[0][i] == 1) {
+            cout << "  Variable " << i << ": ELIMINATED (set to " << fixedVar[1][i] << ")" << endl;
+            eliminated++;
+        } else {
+            cout << "  Variable " << i << ": REMAINS" << endl;
+        }
+    }
+    cout << "=== END MAPPING ===" << endl;
+    // Print polysys info
+    cout << "=== POLYNOMIAL SYSTEM INFO ===" << endl;
+    cout << "Total number of variables: " << sr.Polysys.dimVar << endl;
+    cout << "Total number of polynomials: " << sr.Polysys.polynomial.size() << endl;
+    cout << endl;
+    cout << "=== END POLYNOMIAL SYSTEM INFO ===" << endl;
+    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+        cout << "Polynomial " << i << ":" << endl;
+        cout << "  Type: " << sr.Polysys.polynomial[i].typeCone << " (0=INE, 1=EQU, 2=SDP)" << endl;
+        cout << "  Degree: " << sr.Polysys.polynomial[i].degree << endl;
+        cout << "  Number of terms: " << sr.Polysys.polynomial[i].monoList.size() << endl;
+        // print each monomial
+        for (auto& mono : sr.Polysys.polynomial[i].monoList) {
+            cout << "(" << mono.Coef[0] << "*[";
+            for (int j = 0; j < mono.supIdx.size(); j++) {
+                cout << mono.supIdx[j] << "^" << mono.supVal[j];
+                if (j < mono.supIdx.size() - 1) cout << "*";
+            }
+            cout << "])";
+        }
+        cout << endl;
+        cout << "  Raw monomials: "; // print raw polynomial data
+        for (auto& mono : sr.Polysys.polynomial[i].monoList) {
+            cout << "(" << mono.Coef[0] << ", vars=";
+            for (int j = 0; j < mono.supIdx.size(); j++) {
+                cout << mono.supIdx[j] << "^" << mono.supVal[j];
+                if (j < mono.supIdx.size() - 1) cout << "*";
+            }
+            cout << ") ";
+        }
+        cout << '\n' << endl;
+    }
+    cout << '\n' << "=== END POLYNOMIAL SYSTEM INFO ===" << '\n' << endl;
+
+    // //// Start of Implementation ////
+    // for (auto& mapping : your_input_map) {   // loop through constraint mapping
+    //     int original_constraint = mapping.first;
+    //     vector<int> duplicates = mapping.second;
+    //     // we still need to add the atoms from the first constraint to our variable map 
+    //     // though we can keep the indices the same (I think)
+
+    //     // For each duplicate constraint
+    //     for (int duplicate_level = 0; duplicate_level < duplicates.size(); duplicate_level++) {
+    //         int duplicate_constraint = duplicates[duplicate_level];
+    //         // Copy the original constraint polynomial
+    //         class poly new_poly = sr.Polysys.polynomial[original_constraint];
+        
+    //         // Replace variables in the polynomial with their duplicates
+    //         new_poly.replace_variables(original_constraint, duplicate_level);
+        
+    //         // Add the new polynomial to Polysys
+    //         sr.Polysys.polynomial.push_back(new_poly);
+        
+    //         // Update dimvar if needed (only once per variable, not per constraint)
+    //         update_dimvar_if_needed();
+        
+    //         // Copy and update the variable set for this constraint //
+    //         list<int> original_vars = sr.bindices[original_constraint];
+    //         list<int> new_vars;
+    //         for (int var : original_vars) {
+    //             new_vars.push_back(var); // Add original variable
+    //             new_vars.push_back(map_variable(var, duplicate_level)); // Add duplicated variable
+    //         }
+    //         sr.bindices.push_back(new_vars); // Add the new variable set to bindices
+    //         processed_constraints.insert(duplicate_constraint); // Track that this constraint has been processed
+    //     }
+    // }
+    //// End of Implementation ////
 
 	sr.timedata[9] = (double)clock();
 	val = getmem();
