@@ -189,7 +189,6 @@ void makeSDPr(class s3r &POP, class mysdp & sdpdata, class Info & info, string &
     /* read GMS file */
     POP.problemName = pname;
     inputGMS(POP.Polysys, pname);
-	
     //cout << "reading input finished. " << endl;
     /* read param file */
     POP.param.SetParameters("param.pop", POP.Polysys.dimVar);
@@ -229,8 +228,10 @@ void makeSDPr(class s3r &POP, class mysdp & sdpdata, class Info & info, string &
     fixedVar[0].resize(ndim, 0);
     fixedVar[1].resize(ndim, 10*MIN);
 
-    deleteVar(POP.Polysys, fixedVar);
-	//POP.Polysys.writePolynomials();
+    // create local variable representing variable mapping 
+    vector<int> varMapping; 
+    deleteVar(POP.Polysys, fixedVar, varMapping);
+	
     POP.degOneTerms.resize(POP.Polysys.dimVar, 0);
     if(POP.Polysys.dimVar == 0){
         //cout << POP.Polysys.dimVar << endl;
@@ -338,7 +339,7 @@ void makeSDPr(class s3r &POP, class mysdp & sdpdata, class Info & info, string &
     /* allocate sdpdta */
     // add fixedVar here so we cna acces information regarding which variables
     // were transformed into which other variables during optimization process
-    conversion_part2(POP, fixedVar, oriidx, extmat, sdpdata);
+    conversion_part2(POP, fixedVar, varMapping, oriidx, extmat, sdpdata);
 }
 
 

@@ -25,10 +25,10 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 #include "conversion.h"
 #include "Parameters.h"
 
-void contraction(class polysystem &, vector<vector<double> >);
+void contraction(class polysystem &, vector<vector<double>>, vector<int>&);
 void Substitute(class polysystem &, vector<int>, vector<double>);
 void deleteVarMain(class polysystem &, vector<vector<double> > &, bool &);
-void deleteVar(class polysystem &, vector<vector<double> > &);
+void deleteVar(class polysystem &, vector<vector<double> > &, vector<int>&);
 void read_vars(string, vector<string> &, int);
 void printStrVec(vector<string>);
 void set_bounds(class polysystem &, int, vector<string>, vector<string>, vector<string>, vector<string>, vector<string>);

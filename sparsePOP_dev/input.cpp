@@ -20,7 +20,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
 ------------------------------------------------------------- */
 #include "input.h"
 
-void contraction(class polysystem & Polysys, vector<vector<double> > fixedVar){
+void contraction(class polysystem & Polysys, vector<vector<double> > fixedVar, vector<int>& varMapping){
 	int ndim = fixedVar[0].size();
 	vector<int> idx;
 	vector<double> val;
@@ -30,12 +30,14 @@ void contraction(class polysystem & Polysys, vector<vector<double> > fixedVar){
 			idx.push_back(i);
 		}
 	}	
-	//cout << endl;
-	//cout << "idx = ";
-	//for(int i=0; i< idx.size(); i++){
-	//	cout << idx[i] << " ";
-	//}	
-	//cout << endl;
+
+	// cout << "== Printing idx stuff ==" << endl;
+	// for (int i = 0; i < idx.size(); i++){
+	// 	cout << "idx[" << i << "] = " << idx[i] << endl;
+	// 	cout << "  -> Variable " << i << " used to be variable " << idx[i] << endl;
+	// }
+	// cout << "== Done with idx stuff ==" << endl;
+
 
 	vector<poly>::iterator pit;
 	vector<poly>::iterator pit_begin = Polysys.polynomial.begin();
@@ -105,7 +107,10 @@ void contraction(class polysystem & Polysys, vector<vector<double> > fixedVar){
 		bds.setLow(i+1,Polysys.bounds.lbd(idx[i]));	
 	}
 	Polysys.bounds = bds;
-	//Polysys.writePolynomials();
+
+	// Copy idx info to varMapping
+	// Necessary so in conversion we know what variables have turned into what 
+	varMapping = idx; 
 }
 void Substitute(class polysystem & Polysys, vector<int> idx,vector<double> val){
 	int ndim = idx.size();
@@ -312,21 +317,13 @@ void deleteVarMain(class polysystem & Polysys, vector<vector<double> > & fixedVa
 */	
 }
 
-void deleteVar(class polysystem & Polysys, vector<vector<double> > & fixedVar){
+void deleteVar(class polysystem & Polysys, vector<vector<double> > & fixedVar, vector<int>& varMapping){
 	bool tf = true;
 	while(tf == true){
 		tf = false;
 		deleteVarMain(Polysys, fixedVar, tf);
 		//cout << " delete " << endl;
 	}
-	/*
-	for(int i=0; i<fixedVar.size();i++){
-		for(int j=0; j<fixedVar[i].size();j++){
-			cout << fixedVar[i][j] << " ";
-		}
-		cout << endl;
-	}
-	*/
 
 	int nnz = 0;
 	for(int i=0; i<fixedVar[0].size(); i++){
@@ -337,7 +334,7 @@ void deleteVar(class polysystem & Polysys, vector<vector<double> > & fixedVar){
 	if(nnz > 0){
 		cout << "# " << nnz << " variables fixed." << endl;
 	}
-		contraction(Polysys, fixedVar);
+		contraction(Polysys, fixedVar, varMapping);
 }
 
 void inputGMS(class polysystem & PolySys, string & fname){

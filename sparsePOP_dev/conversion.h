@@ -41,6 +41,7 @@ void conversion_part1(
 void conversion_part2(
         /*IN*/  class s3r & sr,
         vector<vector<double>>& fixedVar,
+        vector<int>& varMapping,
         vector<int> & oriidx,
         class SparseMat & extofcsp,
         /*OUT*/ class mysdp & sdpdata);
