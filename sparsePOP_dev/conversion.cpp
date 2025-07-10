@@ -2446,6 +2446,55 @@ void conversion_part1(
     //sr.Polysys.writePolynomials();
 }
 
+// Print polynomial function for testing
+void printPolynomial(const poly& p, const string& name = "Polynomial") {
+    cout << "=== " << name << " ===" << endl;
+    //cout << "System #: " << p.noSys << endl;
+    cout << "Type: " << (p.typeCone == 1 ? "INEQUALITY" : p.typeCone == -1 ? "EQUALITY" : "OTHER");
+    cout << ", Variables: " << p.dimVar;
+    cout << ", Degree: " << p.degree;
+    cout << ", Terms: " << p.noTerms << endl;
+    cout << "Expression: ";
+    if (p.noTerms == 0) {
+        cout << "0" << endl;
+        return;
+    }
+    list<mono>::const_iterator it = p.monoList.begin();
+    bool first = true;
+    for (; it != p.monoList.end(); ++it) {
+        const mono& m = *it;
+        double coef = m.Coef[0];  // Assuming single coefficient
+        // Print coefficient
+        if (coef >= 0 && !first) {
+            cout << " + ";
+        } else if (coef < 0) {
+            cout << (first ? "-" : " - ");
+            coef = fabs(coef);
+        }
+        if (coef != 1.0 || m.supIdx.empty()) {
+            cout << coef;
+        }
+        // Print variables
+        for (int i = 0; i < m.supIdx.size(); i++) {
+            int varIdx = m.supIdx[i];
+            int power = m.supVal[i];
+            
+            cout << "x" << varIdx;
+            if (power > 1) {
+                cout << "^" << power;
+            }
+        }
+        first = false;
+    }
+    if (p.typeCone == -1) {
+        cout << " = 0";
+    } else if (p.typeCone == 1) {
+        cout << " >= 0";
+    }
+    cout << endl;
+    cout << "==================" << endl;
+}
+
 void conversion_part2(
         /*IN*/  class s3r & sr,
         vector<vector<double>>& fixedVar,
@@ -2647,75 +2696,78 @@ void conversion_part2(
     }
     cout << "=== End Variable Renaming ===" << '\n' << endl;
 
-
-
-    // Print polysys info
-    // cout << "=== POLYNOMIAL SYSTEM INFO ===" << endl;
-    // cout << "Total variables: " << sr.Polysys.dimVar << endl;
-    // cout << "Total polynomials: " << sr.Polysys.polynomial.size() << endl;
+    // cout << "\nOriginal polynomial system (before preprocessing):" << endl;
+    // for (int i = 0; i < sr.OriPolysys.polynomial.size(); i++) {
+    //     cout << "  Original Poly " << i << ": ";
+    //     for (auto& mono : sr.OriPolysys.polynomial[i].monoList) {
+    //         cout << "(" << mono.Coef[0];
+    //         for (int j = 0; j < mono.supIdx.size(); j++) {
+    //             cout << "*x" << mono.supIdx[j] << "^" << mono.supVal[j];
+    //         }
+    //         cout << ") ";
+    //         }
     // cout << endl;
-
-    // for (int i = 0; i < sr.Polysys.polynomial.size(); i++) {
-    //     cout << "Polynomial " << i << ":" << endl;
-    //     // Print constraint type
-    //     string typeStr;
-    //     switch(sr.Polysys.polynomial[i].typeCone) {
-    //         case 0: typeStr = "INEQUALITY"; break;
-    //         case 1: typeStr = "EQUALITY"; break;
-    //         case 2: typeStr = "SDP"; break;
-    //         default: typeStr = "UNKNOWN"; break;
-    //     }
-    //     cout << "  Type: " << typeStr << endl;
-    //     cout << "  Degree: " << sr.Polysys.polynomial[i].degree << endl;
-    //     cout << "  Terms: " << sr.Polysys.polynomial[i].monoList.size() << endl;
-        
-    //     // Print the actual polynomial expression
-    //     cout << "  Expression: ";
-    //     if (sr.Polysys.polynomial[i].monoList.empty()) {
-    //         cout << "0";
-    //     } else {
-    //         bool first = true;
-    //         for (auto& mono : sr.Polysys.polynomial[i].monoList) {
-    //             if (!first) cout << " + ";
-    //             first = false;
-                
-    //             // Print coefficient
-    //             if (mono.Coef[0] != 1.0) {
-    //                 cout << mono.Coef[0];
-    //             }
-                
-    //             // Print variables
-    //             for (int j = 0; j < mono.supIdx.size(); j++) {
-    //                 cout << "x" << mono.supIdx[j];
-    //                 if (mono.supVal[j] > 1) {
-    //                     cout << "^" << mono.supVal[j];
-    //                 }
-    //             }
-    //         }
-    //     }
-    //     cout << endl;
-        
-    //     // Print detailed monomial info for debugging
-    //     cout << "  Detailed monomials:" << endl;
-    //     int k = 0;
-    //     for (auto& mono : sr.Polysys.polynomial[i].monoList) {
-    //         cout << "    Term " << k << ": coefficient=" << mono.Coef[0] << ", variables=";
-    //         if (mono.supIdx.empty()) {
-    //             cout << "(constant)";
-    //         } else {
-    //             for (int j = 0; j < mono.supIdx.size(); j++) {
-    //                 cout << "x" << mono.supIdx[j] << "^" << mono.supVal[j];
-    //                 if (j < mono.supIdx.size() - 1) cout << "*";
-    //             }
-    //         }
-    //         cout << endl;
-    //         k++;
-    //     }
-    //     cout << endl;
     // }
-    // cout << "=== END POLYNOMIAL SYSTEM INFO ===" << endl;
-    
 
+    // Print Original Polynomials
+    cout << "------Printing Original Polynomials-------" << endl;
+    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+        printPolynomial(sr.Polysys.polynomial[i]);
+    }
+    cout << "------Done Printing Original Polynomials-------" << '\n' << endl;
+
+
+    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+        cout << "Checking out polynomial " << i << endl;
+        cout << "It includes the following monomials: "; 
+        vector<int> monomials; 
+        for (auto& mono : sr.Polysys.polynomial[i].monoList){
+            for (int k = 0; k < mono.supIdx.size(); k++){
+                cout << "(" << mono.supIdx[k] << ")";
+                monomials.push_back(mono.supIdx[k]);
+            }
+            cout << " "; 
+        }
+        cout << endl;
+
+        bool replace = false; 
+        for (auto& elem : monomials){
+            auto previous = varMapping[elem];
+            if (previous == 1) { 
+                cout << "We got em: " << sr.Polysys.dimVar << endl;
+                replace = true; 
+            }
+        }
+        if (replace) {
+            cout << "What the what" << endl;
+            class poly new_poly = sr.Polysys.polynomial[i];
+            // New variable logic 
+            int newVarIndex = sr.Polysys.dimVar; // New variable is bindices[sr.Polysys.dimVar]
+            // Add bounds for new variable (same as previous bounds)
+            // copy lowerbounds from variable 0
+            double lowerBound = sr.Polysys.boundsNew.lbd(0);  // 0-indexed access
+            double upperBound = sr.Polysys.boundsNew.ubd(0);
+            // // add new bounds
+            sr.Polysys.boundsNew.setUp(newVarIndex + 1, upperBound);  // 1-indexed input, weird
+            sr.Polysys.boundsNew.setLow(newVarIndex + 1, lowerBound);
+            // increase dimvar
+            // sr.Polysys.dimVar += 1;
+            // update numSys
+            // sr.Polysys.numSys += 1;
+            
+            // replace all instances of variable 0 in new_poly with variable newVarIndex
+            // for (auto& mono : new_poly.monoList){
+            //     for (int k = 0; k < mono.supIdx.size(); k++){
+            //         mono.supIdx[k] = 2; 
+            //         cout << "Aint no way" << endl;
+            //     }
+            // }
+            cout << "Trying to print new poly" << endl;
+            printPolynomial(new_poly);
+
+        }
+    }
+    cout << endl;
     // //// Start of Implementation ////
     // for (auto& mapping : your_input_map) {   // loop through constraint mapping
     //     int original_constraint = mapping.first;
@@ -2753,7 +2805,6 @@ void conversion_part2(
 
 	sr.timedata[9] = (double)clock();
 	val = getmem();
-	//cout << "9 " << sr.timedata[9] << endl;
     
     // Prepare for moment matrix creation
 	mmsize = BasisSupports.supsetArray.size() - sr.Polysys.numsys(); // get number of moment matrices
