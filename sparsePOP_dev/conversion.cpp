@@ -2555,6 +2555,98 @@ void conversion_part2(
     }
     sr.timedata[2] = (double)clock();
 	val = getmem();
+
+    //////////////////////////////////
+    //// My SparsePOP Additions //////
+    //////////////////////////////////
+    cout << endl;
+    cout << "Original system:" << endl;
+    cout << "  Original variables: " << sr.OriPolysys.dimVar << endl;
+    cout << "  Original polynomials: " << sr.OriPolysys.polynomial.size() << endl;
+    cout << "Current system:" << endl;
+    cout << "  Current variables: " << sr.Polysys.dimVar << endl;
+    cout << "  Current polynomials: " << sr.Polysys.polynomial.size() << endl;
+    // Print Variable Information 
+    // uh this is being sussy 
+    cout << "=== VARIABLE MAPPING ===" << endl;
+    cout << "fixedVar[0].size() = " << fixedVar[0].size() << endl;
+    cout << "fixedVar[1].size() = " << fixedVar[1].size() << endl;
+    cout << "Variable to constants:" << endl;
+    int eliminated = 0;
+    for (int i = 0; i < fixedVar[0].size(); i++) {
+        if (fixedVar[0][i] == 1) {
+            cout << "  Variable " << i << ": ELIMINATED (set to " << fixedVar[1][i] << ")" << endl;
+            eliminated++;
+        } else {
+            cout << "  Variable " << i << ": REMAINS" << endl;
+        }
+    }
+    cout << "=== END MAPPING ===" << endl;
+    cout << "=== Variable Renaming ===" << endl;
+    for (int i = 0; i < varMapping.size(); i++){
+        cout << "Variable " << varMapping[i] << " is now Variable " << i << endl; 
+    }
+    cout << "=== End Variable Renaming ===" << '\n' << endl;
+
+    // Print Original Polynomials
+    cout << "------Printing Original Polynomials-------" << endl;
+    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+        printPolynomial(sr.Polysys.polynomial[i]);
+    }
+    cout << "------Done Printing Original Polynomials-------" << '\n' << endl;
+
+    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+        cout << "Checking out polynomial " << i << endl;
+        cout << "It includes the following monomials: "; 
+        vector<int> monomials; 
+        for (auto& mono : sr.Polysys.polynomial[i].monoList){
+            for (int k = 0; k < mono.supIdx.size(); k++){
+                cout << "(" << mono.supIdx[k] << ")";
+                monomials.push_back(mono.supIdx[k]);
+            }
+            cout << " "; 
+        }
+        cout << endl;
+
+        // Delete this later, check if 0 monomial is in polynomial 
+        bool replace = false; 
+        for (auto& elem : monomials){
+            auto previous = varMapping[elem];
+            if (previous == 1) {
+                replace = true; 
+                break;
+            }
+        }
+        // if 0 monomial is present, replace that thing
+        if (replace) {
+            // instantiate new polynomial 
+            class poly new_poly = sr.Polysys.polynomial[i];
+            int newVarIndex = sr.Polysys.dimVar; // New variable is bindices[sr.Polysys.dimVar]
+            // Add bounds for new variable (same as previous bounds)
+            // copy lowerbounds from variable 0
+            double lowerBound = sr.Polysys.boundsNew.lbd(0);  // 0-indexed access
+            double upperBound = sr.Polysys.boundsNew.ubd(0);
+            // // add new bounds
+            sr.Polysys.boundsNew.setUp(newVarIndex + 1, upperBound);  // 1-indexed input, weird
+            sr.Polysys.boundsNew.setLow(newVarIndex + 1, lowerBound);
+            // increase dimvar because we add a new variable 
+            // sr.Polysys.dimVar += 1;
+            
+            // replace all instances of variable 0 in new_poly with variable newVarIndex
+            for (auto& mono : new_poly.monoList){
+                for (int k = 0; k < mono.supIdx.size(); k++){
+                    //mono.supIdx[k] = 2; 
+                    if (mono.supIdx[k] == 0) mono.supIdx[k] = 1; 
+                }
+            }
+            printPolynomial(new_poly);  // print newly formed polynomial 
+            break;
+        }
+    }
+    cout << endl;
+
+    //////////////////////////////////
+    //////////////////////////////////
     
     // Generate sets of basis supports
     // takes the variable sets created by gen_basisindices and generates the monomial supports
@@ -2667,141 +2759,130 @@ void conversion_part2(
     //           So when new constraints are added, we need to update the bindices accordingly.
     // Polysys: Holds all polynomials, variable bounds, and system-wide information. Might be tricky 
 
-    cout << endl;
-    cout << "Original system:" << endl;
-    cout << "  Original variables: " << sr.OriPolysys.dimVar << endl;
-    cout << "  Original polynomials: " << sr.OriPolysys.polynomial.size() << endl;
-    cout << "Current system:" << endl;
-    cout << "  Current variables: " << sr.Polysys.dimVar << endl;
-    cout << "  Current polynomials: " << sr.Polysys.polynomial.size() << endl;
-    // Print Variable Information 
-    // uh this is being sussy 
-    cout << "=== VARIABLE MAPPING ===" << endl;
-    cout << "fixedVar[0].size() = " << fixedVar[0].size() << endl;
-    cout << "fixedVar[1].size() = " << fixedVar[1].size() << endl;
-    cout << "Variable to constants:" << endl;
-    int eliminated = 0;
-    for (int i = 0; i < fixedVar[0].size(); i++) {
-        if (fixedVar[0][i] == 1) {
-            cout << "  Variable " << i << ": ELIMINATED (set to " << fixedVar[1][i] << ")" << endl;
-            eliminated++;
-        } else {
-            cout << "  Variable " << i << ": REMAINS" << endl;
-        }
-    }
-    cout << "=== END MAPPING ===" << endl;
-    cout << "=== Variable Renaming ===" << endl;
-    for (int i = 0; i < varMapping.size(); i++){
-        cout << "Variable " << varMapping[i] << " is now Variable " << i << endl; 
-    }
-    cout << "=== End Variable Renaming ===" << '\n' << endl;
-
-    // cout << "\nOriginal polynomial system (before preprocessing):" << endl;
-    // for (int i = 0; i < sr.OriPolysys.polynomial.size(); i++) {
-    //     cout << "  Original Poly " << i << ": ";
-    //     for (auto& mono : sr.OriPolysys.polynomial[i].monoList) {
-    //         cout << "(" << mono.Coef[0];
-    //         for (int j = 0; j < mono.supIdx.size(); j++) {
-    //             cout << "*x" << mono.supIdx[j] << "^" << mono.supVal[j];
-    //         }
-    //         cout << ") ";
-    //         }
     // cout << endl;
-    // }
-
-    // Print Original Polynomials
-    cout << "------Printing Original Polynomials-------" << endl;
-    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
-        printPolynomial(sr.Polysys.polynomial[i]);
-    }
-    cout << "------Done Printing Original Polynomials-------" << '\n' << endl;
-
-
-    for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
-        cout << "Checking out polynomial " << i << endl;
-        cout << "It includes the following monomials: "; 
-        vector<int> monomials; 
-        for (auto& mono : sr.Polysys.polynomial[i].monoList){
-            for (int k = 0; k < mono.supIdx.size(); k++){
-                cout << "(" << mono.supIdx[k] << ")";
-                monomials.push_back(mono.supIdx[k]);
-            }
-            cout << " "; 
-        }
-        cout << endl;
-
-        bool replace = false; 
-        for (auto& elem : monomials){
-            auto previous = varMapping[elem];
-            if (previous == 1) { 
-                cout << "We got em: " << sr.Polysys.dimVar << endl;
-                replace = true; 
-            }
-        }
-        if (replace) {
-            cout << "What the what" << endl;
-            class poly new_poly = sr.Polysys.polynomial[i];
-            // New variable logic 
-            int newVarIndex = sr.Polysys.dimVar; // New variable is bindices[sr.Polysys.dimVar]
-            // Add bounds for new variable (same as previous bounds)
-            // copy lowerbounds from variable 0
-            double lowerBound = sr.Polysys.boundsNew.lbd(0);  // 0-indexed access
-            double upperBound = sr.Polysys.boundsNew.ubd(0);
-            // // add new bounds
-            sr.Polysys.boundsNew.setUp(newVarIndex + 1, upperBound);  // 1-indexed input, weird
-            sr.Polysys.boundsNew.setLow(newVarIndex + 1, lowerBound);
-            // increase dimvar
-            // sr.Polysys.dimVar += 1;
-            // update numSys
-            // sr.Polysys.numSys += 1;
-            
-            // replace all instances of variable 0 in new_poly with variable newVarIndex
-            // for (auto& mono : new_poly.monoList){
-            //     for (int k = 0; k < mono.supIdx.size(); k++){
-            //         mono.supIdx[k] = 2; 
-            //         cout << "Aint no way" << endl;
-            //     }
-            // }
-            cout << "Trying to print new poly" << endl;
-            printPolynomial(new_poly);
-
-        }
-    }
-    cout << endl;
-    // //// Start of Implementation ////
-    // for (auto& mapping : your_input_map) {   // loop through constraint mapping
-    //     int original_constraint = mapping.first;
-    //     vector<int> duplicates = mapping.second;
-    //     // we still need to add the atoms from the first constraint to our variable map 
-    //     // though we can keep the indices the same (I think)
-
-    //     // For each duplicate constraint
-    //     for (int duplicate_level = 0; duplicate_level < duplicates.size(); duplicate_level++) {
-    //         int duplicate_constraint = duplicates[duplicate_level];
-    //         // Copy the original constraint polynomial
-    //         class poly new_poly = sr.Polysys.polynomial[original_constraint];
-        
-    //         // Replace variables in the polynomial with their duplicates
-    //         new_poly.replace_variables(original_constraint, duplicate_level);
-        
-    //         // Add the new polynomial to Polysys
-    //         sr.Polysys.polynomial.push_back(new_poly);
-        
-    //         // Update dimvar if needed (only once per variable, not per constraint)
-    //         update_dimvar_if_needed();
-        
-    //         // Copy and update the variable set for this constraint //
-    //         list<int> original_vars = sr.bindices[original_constraint];
-    //         list<int> new_vars;
-    //         for (int var : original_vars) {
-    //             new_vars.push_back(var); // Add original variable
-    //             new_vars.push_back(map_variable(var, duplicate_level)); // Add duplicated variable
-    //         }
-    //         sr.bindices.push_back(new_vars); // Add the new variable set to bindices
-    //         processed_constraints.insert(duplicate_constraint); // Track that this constraint has been processed
+    // cout << "Original system:" << endl;
+    // cout << "  Original variables: " << sr.OriPolysys.dimVar << endl;
+    // cout << "  Original polynomials: " << sr.OriPolysys.polynomial.size() << endl;
+    // cout << "Current system:" << endl;
+    // cout << "  Current variables: " << sr.Polysys.dimVar << endl;
+    // cout << "  Current polynomials: " << sr.Polysys.polynomial.size() << endl;
+    // // Print Variable Information 
+    // // uh this is being sussy 
+    // cout << "=== VARIABLE MAPPING ===" << endl;
+    // cout << "fixedVar[0].size() = " << fixedVar[0].size() << endl;
+    // cout << "fixedVar[1].size() = " << fixedVar[1].size() << endl;
+    // cout << "Variable to constants:" << endl;
+    // int eliminated = 0;
+    // for (int i = 0; i < fixedVar[0].size(); i++) {
+    //     if (fixedVar[0][i] == 1) {
+    //         cout << "  Variable " << i << ": ELIMINATED (set to " << fixedVar[1][i] << ")" << endl;
+    //         eliminated++;
+    //     } else {
+    //         cout << "  Variable " << i << ": REMAINS" << endl;
     //     }
     // }
-    //// End of Implementation ////
+    // cout << "=== END MAPPING ===" << endl;
+    // cout << "=== Variable Renaming ===" << endl;
+    // for (int i = 0; i < varMapping.size(); i++){
+    //     cout << "Variable " << varMapping[i] << " is now Variable " << i << endl; 
+    // }
+    // cout << "=== End Variable Renaming ===" << '\n' << endl;
+
+    // // Print Original Polynomials
+    // cout << "------Printing Original Polynomials-------" << endl;
+    // for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+    //     printPolynomial(sr.Polysys.polynomial[i]);
+    // }
+    // cout << "------Done Printing Original Polynomials-------" << '\n' << endl;
+
+    // for (int i = 0; i < sr.Polysys.polynomial.size(); i++){
+    //     cout << "Checking out polynomial " << i << endl;
+    //     cout << "It includes the following monomials: "; 
+    //     vector<int> monomials; 
+    //     for (auto& mono : sr.Polysys.polynomial[i].monoList){
+    //         for (int k = 0; k < mono.supIdx.size(); k++){
+    //             cout << "(" << mono.supIdx[k] << ")";
+    //             monomials.push_back(mono.supIdx[k]);
+    //         }
+    //         cout << " "; 
+    //     }
+    //     cout << endl;
+
+    //     // Delete this later, check if 0 monomial is in polynomial 
+    //     bool replace = false; 
+    //     for (auto& elem : monomials){
+    //         auto previous = varMapping[elem];
+    //         if (previous == 1) {
+    //             replace = true; 
+    //             break;
+    //         }
+    //     }
+    //     // if 0 monomial is present, replace that thing
+    //     if (replace) {
+    //         // instantiate new polynomial 
+    //         class poly new_poly = sr.Polysys.polynomial[i];
+    //         int newVarIndex = sr.Polysys.dimVar; // New variable is bindices[sr.Polysys.dimVar]
+    //         // Add bounds for new variable (same as previous bounds)
+    //         // copy lowerbounds from variable 0
+    //         double lowerBound = sr.Polysys.boundsNew.lbd(0);  // 0-indexed access
+    //         double upperBound = sr.Polysys.boundsNew.ubd(0);
+    //         // // add new bounds
+    //         sr.Polysys.boundsNew.setUp(newVarIndex + 1, upperBound);  // 1-indexed input, weird
+    //         sr.Polysys.boundsNew.setLow(newVarIndex + 1, lowerBound);
+    //         // increase dimvar because we add a new variable 
+    //         // sr.Polysys.dimVar += 1;
+            
+    //         // replace all instances of variable 0 in new_poly with variable newVarIndex
+    //         for (auto& mono : new_poly.monoList){
+    //             for (int k = 0; k < mono.supIdx.size(); k++){
+    //                 //mono.supIdx[k] = 2; 
+    //                 if (mono.supIdx[k] == 0) mono.supIdx[k] = 1; 
+    //             }
+    //         }
+    //         printPolynomial(new_poly);  // print newly formed polynomial 
+    
+    //         break;
+    //     }
+    // }
+    // cout << endl;
+
+    //// Updating things / Adding Implementation ////
+            // // update bindices
+            // auto originalBind = sr.bindices[i]; // list<int>
+            // auto newBind = originalBind; 
+            // newBind.front() = 1; 
+            // cout << "Obindize for " << i << ": " << originalBind.size() << " and front: " << originalBind.front() << endl;
+            // cout << "Nbindize for " << i << ": " << newBind.size() << " and front: " << newBind.front() << endl;
+
+            // // Add polynomial and new variable!
+            // sr.Polysys.dimVar += 1; // update total num of variables
+            // sr.Polysys.numSys += 1; // update total num of constraints
+
+            // // Resize bounds arrays to match new dimVar
+            // sr.Polysys.bounds.allocUpLo(sr.Polysys.dimVar);
+            // sr.Polysys.boundsNew.allocUpLo(sr.Polysys.dimVar);
+
+            // // update bound and newBounds for variable 1 (1-indexed) with the 
+            // // same bounds as those for variable 0
+            // sr.Polysys.bounds.setLow(1+1, sr.Polysys.bounds.lbd(0));      
+            // sr.Polysys.bounds.setUp(1+1, sr.Polysys.bounds.ubd(0));
+            // sr.Polysys.boundsNew.setLow(1+1, sr.Polysys.boundsNew.lbd(0));
+            // sr.Polysys.boundsNew.setUp(1+1, sr.Polysys.boundsNew.ubd(0));
+
+            // sr.Polysys.posOflbds.resize(sr.Polysys.dimVar);
+            // sr.Polysys.posOfubds.resize(sr.Polysys.dimVar);
+
+            // fixedVar[0].push_back(0); // adding entry for new variable, it is 0 because it was not eliminated during preprocessing
+            // fixedVar[1].push_back(0.0); // dummy value
+
+            // // add new polynomial to constraints
+            // sr.Polysys.polynomial.push_back(new_poly);
+            // // bindices have already been updated 
+            // // fixedVar already extended as well
+
+            // // Regenerate basis and supports
+            // sr.genAllSups(BasisSupports);
+            // //// Finish addition implementation ////
 
 	sr.timedata[9] = (double)clock();
 	val = getmem();
