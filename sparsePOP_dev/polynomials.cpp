@@ -647,14 +647,9 @@ void bounds::clear(){
 }
 
 void polysystem::scalingPOP(vector<double> & pMatrix, vector<double> & bVect, vector<double> & scaleVect, int symbolicMath){
-    
-    //cout<<" ***>polysystem::scalingPOP ---> "<<endl;
-    
     //applying the scaling technique via affine trasformation for variables
     //allocate the new upper and lower bounds.
-    //boundsNew.allocUpLo(dimVar);
-    
-    //pMatrix.resize(this->dimVar*this->dimVar,0.0);
+
     pMatrix.resize(this->dimVar, 1);
     bVect.resize(this->dimVar, 0.0);
     for(int i=0;i<this->dimVar;i++){
@@ -845,20 +840,20 @@ void polysystem::scalingPOP(vector<double> & pMatrix, vector<double> & bVect, ve
     
     //writePolynomials();
     //cout << "***Start of addition of bounds" << endl;
-    //system("top -b -n 1 | grep MATLAB | head -1 |awk '{printf(\"memory = %s\\n\"), $6}' ");
-    this->itemp = 888;
-    vector<poly> tmpPolys(numSys);
-    for(int i=0; i< numSys; i++){
-        tmpPolys[i] = polynomial[i];
-    }
-    polynomial.resize(numSys+NumOfActiveBounds);
-    for(int i=0; i< numSys; i++){
-        polynomial[i] = tmpPolys[i];
-        tmpPolys[i].clear();
-    }
-    tmpPolys.clear();
-    this->boundToIneqPolySys();
-    //system("top -b -n 1 | grep MATLAB | head -1 |awk '{printf(\"memory = %s\\n\"), $6}' ");
+    // This section takes our updated bonuds and creates constraints
+    // this->itemp = 888;
+    // vector<poly> tmpPolys(numSys);
+    // for(int i=0; i< numSys; i++){
+    //     tmpPolys[i] = polynomial[i];
+    // }
+    // polynomial.resize(numSys+NumOfActiveBounds);
+    // for(int i=0; i< numSys; i++){
+    //     polynomial[i] = tmpPolys[i];
+    //     tmpPolys[i].clear();
+    // }
+    // tmpPolys.clear();
+    // this->boundToIneqPolySys();
+
     //cout << "***End of addition of bounds" << endl;
     //Extract the constant value of obj. poly.
     this->layawayObjConst();
