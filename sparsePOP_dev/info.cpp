@@ -523,61 +523,38 @@ void Info::nDimZero(class polysystem Polysys, vector<vector<double> > fixedVar){
 	}
 }
 
+// if we have extended fixedVar to include added variables 
+// then hopefully this should go smoothly
 void Info::genAproximation(class poly objPoly, class polysystem Polysys, vector<double> permmatrix, vector<double> bvect, vector<double> vect, vector<vector<double> > fixedVar){
-
 	vector<double> fValue;
 	vector<double> maxAbs; 
-	//Polysys.polynomial[0].evalPoly(vect,fValue,maxAbs);
 	objPoly.evalPoly(vect,fValue,maxAbs);
 	objValue = fValue[0];
-	//cout << objValue << endl;
-	//Polysys.polynomial[0].writePolyData();
-	//objPoly.writePolyData();
 	
-	vector<int> idx;
-	xvect.resize(fixedVar[0].size());
-	for(int i=0; i<fixedVar[0].size(); i++){
+	// Project variables back //
+	vector<int> idx; // collect indices of variables that were not eliminated
+	xvect.resize(fixedVar[0].size()); 
+	// fill in eliminated variables and collect remaining indices
+	for(int i=0; i<fixedVar[0].size(); i++){ 
 		if(fixedVar[0][i] == 1){
 			xvect[i] = fixedVar[1][i];
-			//cout << "xvect[" << i << "]= " << xvect[i] << endl;
-			//cout << " i = "  << i << endl;
 		}else{
 			idx.push_back(i);
-			//cout << "i = " << i << endl;
 		}
 	}
-
-	//cout << Polysys.dimVar << endl;
-	//cout << "gen Approx" << endl;
-
-	//double tmp;
+	// Map reduced solutions back to original variables
 	int ndim = idx.size();
-	for(int i=0; i<ndim; i++){
-		//tmp = 0;
-		/*
-		cout << "bvect = " << bvect[i] << endl;
-		cout << "Amat  = " << permmatrix[i] << endl;
-		cout << "vect  = " << vect[i] << endl;
-		*/
-		//tmp = tmp + vect[i] * permmatrix[i+i*Polysys.dimVar];
-		//for(int j=0; j<ndim; j++){
-		//	//tmp = tmp + vect[j] * permmatrix[j+i*Polysys.dimVar];
-		///	tmp = tmp + vect[j] * permmatrix[j];
-		//}
-		//xvect[i] = tmp + bvect[i];
-		
-		xvect[idx[i]] = vect[i]*permmatrix[i]  + bvect[i];
-		//cout << "i = " << idx[i] << endl;
-		//cout << "xvect[" <<	idx[i] << "]= " << xvect[idx[i]] << endl;
+	for(int i=0; i<ndim; i++){	
+		xvect[idx[i]] = vect[i]*permmatrix[i]  + bvect[i]; // apply affine transformation (scaling/shifting)
 	}
+	// if variable i was eliminated during preprocessing(set to constant)
+	// then xvect[i] holds the constant value that the variable was fixed to
+	// if variable i survived preprocessing, xvect[i] holds the value of the varaible 
+	// as computed from the solution
+
 	infeasError = 0;
 	scaleError = 0;
 	CheckFeasibility(Polysys, infeasError, scaleError);
-	/*
-	cout << "objValue = " << objValue << endl;
-	cout << "infeasError = " << infeasError << endl;
-	cout << "scaleError  = " << scaleError << endl;
-	*/	
 } 
 
 void Info::setandprintSDPInfo(class mysdp sdpdata){
