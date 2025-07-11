@@ -2388,19 +2388,23 @@ void conversion_part1(
                 NumOfActiveBounds++;
             }
         }
-        //add upper and lower bounds as constraints to constraints system
-        int numSys = sr.Polysys.numSys;
-        vector<poly> tmpPolys(numSys);
-        for(int i=0; i< numSys; i++){
-            tmpPolys[i] = sr.Polysys.polynomial[i];
-        }
-        sr.Polysys.polynomial.resize(numSys+NumOfActiveBounds);
-        for(int i=0; i< numSys; i++){
-            sr.Polysys.polynomial[i] = tmpPolys[i];
-            tmpPolys[i].clear();
-        }
-        tmpPolys.clear();
-        sr.Polysys.boundToIneqPolySys();
+
+        // // this section takes our original bounds and creates constraints from them, removing for our purposes
+        // //add upper and lower bounds as constraints to constraints system
+        // int numSys = sr.Polysys.numSys; // current num constraints
+        // vector<poly> tmpPolys(numSys);
+        // for(int i=0; i< numSys; i++){
+        //     tmpPolys[i] = sr.Polysys.polynomial[i]; // copy each constraint
+        // }
+        // sr.Polysys.polynomial.resize(numSys+NumOfActiveBounds); // make room for new bounds
+        // for(int i=0; i< numSys; i++){
+        //     sr.Polysys.polynomial[i] = tmpPolys[i]; // put original constraints back 
+        //     tmpPolys[i].clear(); // clean temp storage
+        // }
+        // tmpPolys.clear();
+        // sr.Polysys.boundToIneqPolySys(); // create new polynomial constraints for each bound
+        // //finish adding up and low bounds as constraints 
+
         //eliminate constant from objective function
         sr.Polysys.layawayObjConst();
         //set permutation matrix and constant vector
@@ -2692,6 +2696,7 @@ void conversion_part2(
     // BasisSupports.supsetArray is an array of supSet objects, with supsetArray[i] for constraint i
     // Each supSet object holds a list of sup objects, each of which indicate a monomial by 
     // by storing the index of the atoms involved and their respective exponents
+    // This mostly utilizes bindices, and does not look at max cliques, so be careful about changing what is stored in bindices
     sr.genBasisSupports(BasisSupports);
     if(sr.param.detailedInfFile.empty() == false){
         sr.write_BasisSupports(0, sr.param.detailedInfFile, BasisSupports);
